@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tamagotchi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0e4ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 300px;
+            margin: 1rem;
+            box-sizing: border-box;
+        }
+        h2 {
+            color: #ff6f61;
+            font-size: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+        input {
+            width: 100%;
+            padding: 0.625rem;
+            margin: 0.625rem 0;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        button {
+            background-color: #ff6f61;
+            color: white;
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 0.3125rem 0;
+            width: 100%;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        button:hover:not(:disabled) {
+            background-color: #ff4f41;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .toggle-form {
+            color: #ff6f61;
+            cursor: pointer;
+            text-decoration: underline;
+            margin: 0.3125rem 0;
+            font-size: 0.875rem;
+        }
+        .toggle-form:hover {
+            color: #ff4f41;
+        }
+        .error, .loading-message {
+            font-size: 0.875rem;
+            margin-top: 0.3125rem;
+            display: none;
+        }
+        .error {
+            color: red;
+        }
+        .loading-message {
+            color: #555;
+        }
+
+        /* Tablet (max-width: 768px) */
+        @media (max-width: 768px) {
+            .container {
+                max-width: 90%;
+                padding: 1.5rem;
+            }
+            h2 {
+                font-size: 1.25rem;
+                margin-bottom: 1rem;
+            }
+            input, button {
+                padding: 0.5rem;
+                font-size: 0.9375rem;
+            }
+            .toggle-form, .error, .loading-message {
+                font-size: 0.8125rem;
+            }
+        }
+
+        /* Mobile (max-width: 480px) */
+        @media (max-width: 480px) {
+            body {
+                padding: 0.5rem;
+            }
+            .container {
+                max-width: 100%;
+                padding: 1rem;
+                margin: 0.5rem;
+            }
+            h2 {
+                font-size: 1.125rem;
+                margin-bottom: 0.75rem;
+            }
+            input, button {
+                padding: 0.5rem;
+                font-size: 0.875rem;
+            }
+            button {
+                padding: 0.75rem;
+            }
+            .toggle-form, .error, .loading-message {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="auth-container">
+        <h2 id="form-title">Đăng nhập</h2>
+        <input type="email" id="email" placeholder="Email">
+        <div class="error" id="email-error">Vui lòng nhập email hợp lệ!</div>
+        <input type="password" id="password" placeholder="Mật khẩu">
+        <div class="error" id="password-error">Mật khẩu phải có ít nhất 6 ký tự!</div>
+        <button id="auth-button" onclick="handleAuth()">Đăng nhập</button>
+        <div class="loading-message" id="auth-loading">Đang xử lý...</div>
+        <p class="toggle-form" id="toggle-form-text" onclick="toggleForm()">Chưa có tài khoản? Đăng ký ngay!</p>
+        <p class="toggle-form" onclick="showReset()">Quên mật khẩu?</p>
+    </div>
+
+    <div class="container" id="reset-container" style="display: none;">
+        <h2>Khôi phục mật khẩu</h2>
+        <input type="email" id="reset-email" placeholder="Email">
+        <div class="error" id="reset-email-error">Vui lòng nhập email hợp lệ!</div>
+        <button id="reset-button" onclick="resetPassword()">Gửi email khôi phục</button>
+        <div class="loading-message" id="reset-loading">Đang gửi email...</div>
+        <p class="toggle-form" onclick="showLogin()">Quay lại đăng nhập</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCgd64xynT0ppg6-E1RrPx2QEFZONTaIqM",
+            authDomain: "mytamagotchi-fb787.firebaseapp.com",
+            projectId: "mytamagotchi-fb787",
+            storageBucket: "mytamagotchi-fb787.firebasestorage.app",
+            messagingSenderId: "427722619339",
+            appId: "1:427722619339:web:123996eab78d49202bde4e",
+            measurementId: "G-CGZZDQRTEP"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const elements = {
+            formTitle: document.getElementById("form-title"),
+            email: document.getElementById("email"),
+            password: document.getElementById("password"),
+            emailError: document.getElementById("email-error"),
+            passwordError: document.getElementById("password-error"),
+            authButton: document.getElementById("auth-button"),
+            authLoading: document.getElementById("auth-loading"),
+            toggleFormText: document.getElementById("toggle-form-text"),
+            authContainer: document.getElementById("auth-container"),
+            resetContainer: document.getElementById("reset-container"),
+            resetEmail: document.getElementById("reset-email"),
+            resetEmailError: document.getElementById("reset-email-error"),
+            resetButton: document.getElementById("reset-button"),
+            resetLoading: document.getElementById("reset-loading"),
+        };
+
+        let isLogin = true;
+
+        window.toggleForm = function () {
+            isLogin = !isLogin;
+            elements.formTitle.textContent = isLogin ? "Đăng nhập" : "Đăng ký";
+            elements.toggleFormText.textContent = isLogin ? "Chưa có tài khoản? Đăng ký ngay!" : "Đã có tài khoản? Đăng nhập ngay!";
+            elements.authButton.textContent = isLogin ? "Đăng nhập" : "Đăng ký";
+            elements.emailError.style.display = "none";
+            elements.passwordError.style.display = "none";
+            elements.email.value = "";
+            elements.password.value = "";
+        };
+
+        window.showReset = function () {
+            elements.authContainer.style.display = "none";
+            elements.resetContainer.style.display = "block";
+            elements.resetEmail.value = "";
+            elements.resetEmailError.style.display = "none";
+        };
+
+        window.showLogin = function () {
+            elements.authContainer.style.display = "block";
+            elements.resetContainer.style.display = "none";
+            elements.email.value = "";
+            elements.password.value = "";
+            elements.emailError.style.display = "none";
+            elements.passwordError.style.display = "none";
+        };
+
+        function validateAuthForm(email, password) {
+            let hasError = false;
+            elements.emailError.style.display = "none";
+            elements.passwordError.style.display = "none";
+
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !emailPattern.test(email)) {
+                elements.emailError.style.display = "block";
+                hasError = true;
+            }
+            if (!password || password.length < 6) {
+                elements.passwordError.style.display = "block";
+                hasError = true;
+            }
+
+            return !hasError;
+        }
+
+        function validateResetForm(email) {
+            elements.resetEmailError.style.display = "none";
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !emailPattern.test(email)) {
+                elements.resetEmailError.style.display = "block";
+                return false;
+            }
+            return true;
+        }
+
+        window.handleAuth = async function () {
+            const email = elements.email.value.trim();
+            const password = elements.password.value;
+
+            if (!validateAuthForm(email, password)) return;
+
+            elements.authButton.disabled = true;
+            elements.authLoading.style.display = "block";
+
+            try {
+                let userCredential;
+                if (isLogin) {
+                    userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    alert("Đăng nhập thành công!");
+                } else {
+                    userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    alert("Đăng ký thành công! Hãy tạo pet của bạn nhé!");
+                }
+                const user = userCredential.user;
+                await loadPet(user.uid);
+            } catch (error) {
+                alert(`${isLogin ? "Đăng nhập" : "Đăng ký"} thất bại: ${error.message}`);
+            } finally {
+                elements.authButton.disabled = false;
+                elements.authLoading.style.display = "none";
+            }
+        };
+
+        window.resetPassword = async function () {
+            const email = elements.resetEmail.value.trim();
+
+            if (!validateResetForm(email)) return;
+
+            elements.resetButton.disabled = true;
+            elements.resetLoading.style.display = "block";
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                alert("Email khôi phục đã được gửi! Vui lòng kiểm tra hộp thư của bạn.");
+                showLogin();
+            } catch (error) {
+                alert("Lỗi gửi email khôi phục: " + error.message);
+            } finally {
+                elements.resetButton.disabled = false;
+                elements.resetLoading.style.display = "none";
+            }
+        };
+
+        async function loadPet(userId) {
+            try {
+                const docRef = doc(db, "Users", userId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const petData = docSnap.data();
+                    alert(`Chào mừng trở lại! Bé ${petData.petName} đang chờ bạn! (Level: ${petData.level})`);
+                    window.location.href = `game.html?uid=${userId}`;
+                } else {
+                    window.location.href = `creation.html?uid=${userId}`;
+                }
+            } catch (error) {
+                console.error("Lỗi tải pet:", error);
+                alert("Lỗi tải pet: " + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

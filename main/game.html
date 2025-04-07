@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tamagotchi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0e4ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .game-container {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+            margin: 1rem;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .pet-display {
+            width: 12.5rem;
+            height: 12.5rem;
+            margin: 0 auto 0.625rem;
+            border: 2px solid #ccc;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 6.25rem;
+        }
+        .pet-display.jumping {
+            animation: jump 1s infinite;
+        }
+        .pet-display.sad {
+            animation: sad 1s infinite;
+        }
+        @keyframes jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-1.25rem); }
+        }
+        @keyframes sad {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(0.3125rem); }
+        }
+        .pet-status {
+            font-size: 1rem;
+            color: #ff6f61;
+            margin: 0.625rem 0 1.25rem;
+            font-weight: bold;
+        }
+        .special-status {
+            color: #ff6f61;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 0.3125rem;
+            display: none;
+        }
+        .info-button {
+            position: absolute;
+            top: 0.625rem;
+            right: 0.625rem;
+            background-color: #ff6f61;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 2.5rem;
+            height: 2.5rem;
+            cursor: pointer;
+            font-size: 1.25rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s ease, background-color 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .info-button:hover {
+            background-color: #ff4f41;
+            transform: scale(1.1);
+        }
+        .dialog {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 1.25rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            width: 90%;
+            max-width: 300px;
+        }
+        .dialog-content {
+            text-align: left;
+        }
+        .dialog-content p {
+            margin: 0.3125rem 0;
+            font-size: 0.875rem;
+        }
+        .close-button {
+            position: absolute;
+            top: 0.625rem;
+            right: 0.625rem;
+            background-color: #ff6f61;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.3125rem 0.625rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        .close-button:hover {
+            background-color: #ff4f41;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .stats {
+            margin: 1.25rem 0;
+            text-align: left;
+            padding: 0 1.25rem;
+        }
+        .stat-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.9375rem;
+        }
+        .stat-label {
+            width: 2.5rem;
+            font-size: 1.25rem;
+            text-align: center;
+            color: #333;
+        }
+        .progress-container {
+            width: 100%;
+            max-width: 18.75rem;
+            height: 0.9375rem;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-right: 0.9375rem;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #ff6f61;
+            transition: width 0.3s ease;
+        }
+        .stat-value {
+            width: 4.375rem;
+            text-align: right;
+            font-size: 0.875rem;
+            color: #555;
+        }
+        .actions {
+            display: flex;
+            justify-content: space-around;
+            margin: 1.25rem 0;
+            flex-wrap: wrap;
+            gap: 0.625rem;
+        }
+        .items {
+            margin: 1.25rem 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.625rem;
+        }
+        select {
+            padding: 0.3125rem;
+            border-radius: 5px;
+            width: 9.375rem;
+            font-size: 0.875rem;
+        }
+        button {
+            background-color: #ff6f61;
+            color: white;
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #ff4f41;
+        }
+        .delete-button {
+            background-color: #ff4f41;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 0.9375rem;
+            width: 100%;
+            font-size: 0.875rem;
+        }
+        .delete-button:hover {
+            background-color: #e43f32;
+        }
+
+        /* Tablet (max-width: 768px) */
+        @media (max-width: 768px) {
+            .game-container {
+                max-width: 90%;
+                padding: 1.5rem;
+            }
+            .pet-display {
+                width: 10rem;
+                height: 10rem;
+                font-size: 5rem;
+            }
+            .pet-status, .special-status {
+                font-size: 0.9375rem;
+            }
+            .info-button {
+                width: 2rem;
+                height: 2rem;
+                font-size: 1rem;
+            }
+            .stats {
+                padding: 0 0.9375rem;
+            }
+            .stat-label {
+                width: 2rem;
+                font-size: 1rem;
+            }
+            .progress-container {
+                max-width: 100%;
+                height: 0.75rem;
+            }
+            .stat-value {
+                width: 3.75rem;
+                font-size: 0.8125rem;
+            }
+            .actions {
+                gap: 0.5rem;
+            }
+            button {
+                padding: 0.5rem 1rem;
+                font-size: 0.8125rem;
+            }
+            select {
+                width: 8rem;
+                font-size: 0.8125rem;
+            }
+            .dialog {
+                padding: 1rem;
+            }
+            .dialog-content p {
+                font-size: 0.8125rem;
+            }
+            .close-button {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            .delete-button {
+                font-size: 0.8125rem;
+            }
+        }
+
+        /* Mobile (max-width: 480px) */
+        @media (max-width: 480px) {
+            body {
+                padding: 0.5rem;
+            }
+            .game-container {
+                max-width: 100%;
+                padding: 1rem;
+                margin: 0.5rem;
+            }
+            .pet-display {
+                width: 8rem;
+                height: 8rem;
+                font-size: 4rem;
+            }
+            .pet-status, .special-status {
+                font-size: 0.875rem;
+            }
+            .info-button {
+                width: 1.75rem;
+                height: 1.75rem;
+                font-size: 0.875rem;
+            }
+            .stats {
+                padding: 0 0.625rem;
+            }
+            .stat-label {
+                width: 1.75rem;
+                font-size: 0.875rem;
+            }
+            .progress-container {
+                max-width: 100%;
+                height: 0.625rem;
+            }
+            .stat-value {
+                width: 3.125rem;
+                font-size: 0.75rem;
+            }
+            .actions {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .actions button {
+                width: 100%;
+                padding: 0.75rem;
+            }
+            .items {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            select {
+                width: 100%;
+                font-size: 0.875rem;
+            }
+            button {
+                padding: 0.75rem;
+                font-size: 0.875rem;
+            }
+            .dialog {
+                padding: 0.75rem;
+            }
+            .dialog-content p {
+                font-size: 0.75rem;
+            }
+            .close-button {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.625rem;
+            }
+            .delete-button {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="pet-display" id="pet-display">🐾</div>
+        <div class="pet-status" id="pet-status"></div>
+        <div class="special-status" id="special-status"></div>
+        <button class="info-button" onclick="showDialog()">i</button>
+        <div class="stats">
+            <div class="stat-bar">
+                <span class="stat-label">⚡</span>
+                <div class="progress-container">
+                    <div class="progress-bar" id="energy-bar" style="width: 100%;"></div>
+                </div>
+                <span class="stat-value" id="pet-energy">100/100</span>
+            </div>
+            <div class="stat-bar">
+                <span class="stat-label">🍽️</span>
+                <div class="progress-container">
+                    <div class="progress-bar" id="hunger-bar" style="width: 50%;"></div>
+                </div>
+                <span class="stat-value" id="pet-hunger">50/100</span>
+            </div>
+            <div class="stat-bar">
+                <span class="stat-label">❤️</span>
+                <div class="progress-container">
+                    <div class="progress-bar" id="happiness-bar" style="width: 30%;"></div>
+                </div>
+                <span class="stat-value" id="pet-happiness">30/100</span>
+            </div>
+        </div>
+        <div class="actions">
+            <button onclick="feedPet()">Cho ăn</button>
+            <button onclick="playWithPet()">Chơi</button>
+            <button onclick="restPet()">Nghỉ ngơi</button>
+        </div>
+        <div class="items">
+            <select id="item-select">
+                <option value="">--Chọn vật phẩm--</option>
+            </select>
+            <button onclick="useItem()">Dùng vật phẩm</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="dialog" id="info-dialog">
+        <button class="close-button" onclick="closeDialog()">X</button>
+        <div class="dialog-content">
+            <p><strong>Tên:</strong> <span id="dialog-pet-name"></span></p>
+            <p><strong>Loại:</strong> <span id="dialog-pet-type"></span></p>
+            <p><strong>Màu sắc:</strong> <span id="dialog-pet-color"></span></p>
+            <p><strong>Ngày sinh:</strong> <span id="dialog-pet-birthdate"></span></p>
+            <p><strong>Cấp độ:</strong> <span id="dialog-pet-level"></span></p>
+            <button class="delete-button" onclick="confirmDeletePet()">Xóa Pet</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCgd64xynT0ppg6-E1RrPx2QEFZONTaIqM",
+            authDomain: "mytamagotchi-fb787.firebaseapp.com",
+            projectId: "mytamagotchi-fb787",
+            storageBucket: "mytamagotchi-fb787.firebasestorage.app",
+            messagingSenderId: "427722619339",
+            appId: "1:427722619339:web:123996eab78d49202bde4e",
+            measurementId: "G-CGZZDQRTEP"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const COLOR_MAP = {
+            Đỏ: "#ff6f61",
+            Lục: "#61ff6f",
+            Xanh: "#6f61ff",
+            Vàng: "#ffff61",
+            Hồng: "#ff61ff",
+            Lam: "#61ffff",
+            Tím: "#6f61ff",
+            Cam: "#ff9161",
+            Nâu: "#6f4c3e",
+            Trắng: "#ffffff",
+            Đen: "#000000",
+            Xám: "#808080",
+        };
+        const UPDATE_INTERVAL_SECONDS = 10;
+        const HAPPINESS_LEVEL_UP_THRESHOLD = 5;
+
+        const elements = {
+            petDisplay: document.getElementById("pet-display"),
+            petStatus: document.getElementById("pet-status"),
+            specialStatus: document.getElementById("special-status"),
+            energyBar: document.getElementById("energy-bar"),
+            hungerBar: document.getElementById("hunger-bar"),
+            happinessBar: document.getElementById("happiness-bar"),
+            petEnergy: document.getElementById("pet-energy"),
+            petHunger: document.getElementById("pet-hunger"),
+            petHappiness: document.getElementById("pet-happiness"),
+            itemSelect: document.getElementById("item-select"),
+            dialogPetName: document.getElementById("dialog-pet-name"),
+            dialogPetType: document.getElementById("dialog-pet-type"),
+            dialogPetColor: document.getElementById("dialog-pet-color"),
+            dialogPetBirthdate: document.getElementById("dialog-pet-birthdate"),
+            dialogPetLevel: document.getElementById("dialog-pet-level"),
+            infoDialog: document.getElementById("info-dialog"),
+            overlay: document.getElementById("overlay"),
+        };
+
+        const sounds = {
+            hungry: new Audio('https://www.myinstants.com/media/sounds/hungry-stomach-growling.mp3'),
+            sad: new Audio('https://www.myinstants.com/media/sounds/sad-cat-meow.mp3'),
+            levelUp: new Audio('https://www.myinstants.com/media/sounds/level-up.mp3'),
+        };
+
+        let petData = null;
+        let updateInterval = null;
+        let happinessHighCount = 0;
+        const urlParams = new URLSearchParams(window.location.search);
+        const uid = urlParams.get('uid');
+
+        async function loadPet() {
+            if (!uid) {
+                alert("Không tìm thấy UID người dùng!");
+                return window.location.href = "index.html";
+            }
+
+            try {
+                const petRef = doc(db, "Users", uid);
+                const petSnap = await getDoc(petRef);
+
+                if (petSnap.exists()) {
+                    petData = petSnap.data();
+                    await updateStatsBasedOnTime();
+                    populateItems();
+                    displayPet();
+                    startStatUpdates();
+                } else {
+                    alert("Không tìm thấy pet!");
+                    window.location.href = `creation.html?uid=${uid}`;
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải pet:", error);
+                alert("Lỗi khi tải pet: " + error.message);
+            }
+        }
+
+        function populateItems() {
+            elements.itemSelect.innerHTML = '<option value="">--Chọn vật phẩm--</option>';
+            petData.items.forEach(item => {
+                const option = document.createElement("option");
+                option.value = option.textContent = item;
+                elements.itemSelect.appendChild(option);
+            });
+        }
+
+        function getPetStatus() {
+            const happinessState = petData.happiness >= 50 ? "Vui 😊" : "Buồn 😢";
+            const hungerState = petData.hunger >= 50 ? "No 🥄" : "Đói 🍽️";
+            const energyState = petData.energy >= 50 ? "Tỉnh táo ⚡" : "Ngái ngủ 💤";
+            return `${petData.petName} đang cảm thấy: ${happinessState}, ${hungerState}, ${energyState}`;
+        }
+
+        function displayPet() {
+            elements.petEnergy.textContent = `${petData.energy}/100`;
+            elements.petHunger.textContent = `${petData.hunger}/100`;
+            elements.petHappiness.textContent = `${petData.happiness}/100`;
+            elements.energyBar.style.width = `${petData.energy}%`;
+            elements.hungerBar.style.width = `${petData.hunger}%`;
+            elements.happinessBar.style.width = `${petData.happiness}%`;
+
+            elements.dialogPetName.textContent = petData.petName;
+            elements.dialogPetType.textContent = petData.petType;
+            elements.dialogPetColor.textContent = petData.color;
+            elements.dialogPetBirthdate.textContent = petData.birthDate;
+            elements.dialogPetLevel.textContent = petData.level;
+
+            elements.petDisplay.style.backgroundColor = COLOR_MAP[petData.color] || "#fff";
+            elements.petDisplay.classList.remove("jumping", "sad");
+
+            if (petData.hunger < 30) {
+                elements.petDisplay.textContent = "😾";
+                sounds.hungry.play();
+            } else if (petData.happiness < 30) {
+                elements.petDisplay.textContent = "😿";
+                elements.petDisplay.classList.add("sad");
+                sounds.sad.play();
+            } else if (petData.happiness > 80) {
+                elements.petDisplay.textContent = "😸";
+                elements.petDisplay.classList.add("jumping");
+            } else {
+                elements.petDisplay.textContent = "😺";
+            }
+
+            elements.petStatus.textContent = getPetStatus();
+
+            elements.specialStatus.textContent = `${petData.petName} đang cảm thấy Tuyệt vời! 🎉`;
+            elements.specialStatus.style.display = (petData.energy > 80 && petData.hunger > 80 && petData.happiness > 80) ? "block" : "none";
+        }
+
+        async function updateStatsBasedOnTime() {
+            if (!petData.lastUpdated) {
+                petData.lastUpdated = serverTimestamp();
+                return await updatePet();
+            }
+
+            const lastUpdated = petData.lastUpdated.toDate();
+            const now = new Date();
+            const timeDiffSeconds = Math.floor((now - lastUpdated) / 1000);
+            const updatesMissed = Math.floor(timeDiffSeconds / UPDATE_INTERVAL_SECONDS);
+
+            if (updatesMissed > 0) {
+                petData.energy = Math.max(petData.energy - 2 * updatesMissed, 0);
+                petData.hunger = Math.max(petData.hunger - 5 * updatesMissed, 0);
+                petData.happiness = Math.max(petData.happiness - 2 * updatesMissed, 0);
+                petData.lastUpdated = serverTimestamp();
+                await updatePet();
+            }
+        }
+
+        function startStatUpdates() {
+            updateInterval = setInterval(async () => {
+                petData.energy = Math.max(petData.energy - 2, 0);
+                petData.hunger = Math.max(petData.hunger - 5, 0);
+                petData.happiness = Math.max(petData.happiness - 2, 0);
+                petData.lastUpdated = serverTimestamp();
+
+                if (petData.happiness > 80) {
+                    happinessHighCount++;
+                    if (happinessHighCount >= HAPPINESS_LEVEL_UP_THRESHOLD) {
+                        petData.level += 1;
+                        happinessHighCount = 0;
+                        sounds.levelUp.play();
+                        alert(`Chúc mừng! ${petData.petName} đã lên cấp ${petData.level}!`);
+                    }
+                } else {
+                    happinessHighCount = 0;
+                }
+
+                await updatePet();
+                displayPet();
+            }, UPDATE_INTERVAL_SECONDS * 1000);
+        }
+
+        async function updatePet() {
+            try {
+                const petRef = doc(db, "Users", uid);
+                await updateDoc(petRef, petData);
+                console.log("Pet updated successfully!");
+            } catch (error) {
+                console.error("Lỗi khi cập nhật pet:", error);
+                alert("Lỗi khi cập nhật pet: " + error.message);
+            }
+        }
+
+        async function deletePet() {
+            try {
+                const petRef = doc(db, "Users", uid);
+                await deleteDoc(petRef);
+                console.log("Pet deleted successfully!");
+                alert(`${petData.petName} đã được xóa thành công!`);
+                window.location.href = `creation.html?uid=${uid}`;
+            } catch (error) {
+                console.error("Lỗi khi xóa pet:", error);
+                alert("Lỗi khi xóa pet: " + error.message);
+            }
+        }
+
+        window.feedPet = async () => {
+            petData.hunger = Math.min(petData.hunger + 20, 100);
+            petData.happiness = Math.min(petData.happiness + 5, 100);
+            petData.energy = Math.max(petData.energy - 5, 0);
+            petData.lastUpdated = serverTimestamp();
+            happinessHighCount = petData.happiness > 80 ? happinessHighCount + 1 : 0;
+            await updatePet();
+            displayPet();
+        };
+
+        window.playWithPet = async () => {
+            petData.happiness = Math.min(petData.happiness + 20, 100);
+            petData.energy = Math.max(petData.energy - 10, 0);
+            petData.hunger = Math.max(petData.hunger - 10, 0);
+            petData.lastUpdated = serverTimestamp();
+            happinessHighCount = petData.happiness > 80 ? happinessHighCount + 1 : 0;
+            await updatePet();
+            displayPet();
+        };
+
+        window.restPet = async () => {
+            petData.energy = Math.min(petData.energy + 20, 100);
+            petData.hunger = Math.max(petData.hunger - 5, 0);
+            petData.happiness = Math.max(petData.happiness - 5, 0);
+            petData.lastUpdated = serverTimestamp();
+            happinessHighCount = petData.happiness > 80 ? happinessHighCount + 1 : 0;
+            await updatePet();
+            displayPet();
+        };
+
+        window.useItem = async () => {
+            const selectedItem = elements.itemSelect.value;
+            if (!selectedItem) return alert("Vui lòng chọn một vật phẩm!");
+
+            if (selectedItem === "Thức ăn đặc biệt") {
+                petData.hunger = Math.min(petData.hunger + 50, 100);
+                alert(`${petData.petName} đã dùng Thức ăn đặc biệt! Hunger +50`);
+            } else {
+                alert(`${petData.petName} đã dùng ${selectedItem}! (Chưa có hiệu ứng cho vật phẩm này)`);
+            }
+
+            petData.items = petData.items.filter(item => item !== selectedItem);
+            petData.lastUpdated = serverTimestamp();
+            await updatePet();
+            populateItems();
+            displayPet();
+        };
+
+        window.showDialog = () => {
+            elements.infoDialog.style.display = "block";
+            elements.overlay.style.display = "block";
+        };
+
+        window.closeDialog = () => {
+            elements.infoDialog.style.display = "none";
+            elements.overlay.style.display = "none";
+        };
+
+        window.confirmDeletePet = () => {
+            if (window.confirm(`Bạn có chắc chắn muốn xóa ${petData.petName} không? Hành động này không thể hoàn tác!`)) {
+                deletePet();
+            } else {
+                closeDialog();
+            }
+        };
+
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) clearInterval(updateInterval);
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                if (uid && uid === user.uid) {
+                    loadPet();
+                } else {
+                    alert("UID không hợp lệ! Vui lòng đăng nhập lại.");
+                    window.location.href = "index.html";
+                }
+            } else {
+                alert("Vui lòng đăng nhập để xem pet!");
+                window.location.href = "index.html";
+            }
+        });
+    </script>
+</body>
+</html>
