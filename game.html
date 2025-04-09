@@ -36,13 +36,36 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 6.25rem;
+            background-color: #fff;
+            cursor: pointer;
+        }
+        .pet-display img {
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+            object-fit: contain;
         }
         .pet-display.jumping {
             animation: jump 1s infinite;
         }
         .pet-display.sad {
             animation: sad 1s infinite;
+        }
+        .pet-display.shaking {
+            animation: shake 0.5s infinite;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-0.3125rem); }
+            75% { transform: translateX(0.3125rem); }
+        }
+
+        .pet-display.fading {
+            animation: fade 1s infinite;
+        }
+        @keyframes fade {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
         @keyframes jump {
             0%, 100% { transform: translateY(0); }
@@ -58,12 +81,46 @@
             margin: 0.625rem 0 1.25rem;
             font-weight: bold;
         }
-        .special-status {
+        .action-status {
             color: #ff6f61;
             font-weight: bold;
             font-size: 1rem;
             margin-top: 0.3125rem;
             display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .action-status.show {
+            display: block;
+            opacity: 1;
+        }
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0.5rem 0;
+        }
+        .shop-item span {
+            font-size: 0.875rem;
+        }
+        .shop-item button {
+            padding: 0.3125rem 0.625rem;
+            font-size: 0.75rem;
+        }
+        .gold-display {
+            position: absolute;
+            top: 0.625rem;
+            left: 0.625rem;
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #ff6f61;
+        }
+        .gold-icon {
+            font-size: 1.5rem;
+            margin-right: 0.3125rem;
+            cursor: pointer;
         }
         .info-button {
             position: absolute;
@@ -149,6 +206,7 @@
             font-size: 1.25rem;
             text-align: center;
             color: #333;
+            cursor: pointer;
         }
         .progress-container {
             width: 100%;
@@ -200,8 +258,12 @@
             font-size: 0.875rem;
             transition: background-color 0.3s ease;
         }
-        button:hover {
+        button:hover:not(:disabled) {
             background-color: #ff4f41;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
         }
         .delete-button {
             background-color: #ff4f41;
@@ -224,12 +286,17 @@
                 max-width: 90%;
                 padding: 1.5rem;
             }
+            .gold-display {
+                font-size: 0.9375rem;
+            }
+            .gold-icon {
+                font-size: 1.25rem;
+            }
             .pet-display {
                 width: 10rem;
                 height: 10rem;
-                font-size: 5rem;
             }
-            .pet-status, .special-status {
+            .pet-status, .action-status {
                 font-size: 0.9375rem;
             }
             .info-button {
@@ -288,12 +355,17 @@
                 padding: 1rem;
                 margin: 0.5rem;
             }
+            .gold-display {
+                font-size: 0.875rem;
+            }
+            .gold-icon {
+                font-size: 1rem;
+            }
             .pet-display {
                 width: 8rem;
                 height: 8rem;
-                font-size: 4rem;
             }
-            .pet-status, .special-status {
+            .pet-status, .action-status {
                 font-size: 0.875rem;
             }
             .info-button {
@@ -354,11 +426,53 @@
 </head>
 <body>
     <div class="game-container">
-        <div class="pet-display" id="pet-display">🐾</div>
+        <div class="gold-display">
+            <span class="gold-icon" onclick="showShop()">🛒</span>
+            <span id="gold-amount">0 </span>
+        </div>
+        
+        <div class="overlay" id="shop-overlay"></div>
+        <div class="dialog" id="shop-dialog">
+            <button class="close-button" onclick="closeShop()">X</button>
+            <div class="dialog-content">
+                <h3>Cửa hàng</h3>
+                <div class="shop-item">
+                    <span>Thức ăn đặc biệt (15 vàng)</span>
+                    <button onclick="buyItem('Thức ăn đặc biệt', 15)">Mua</button>
+                </div>
+                <div class="shop-item">
+                    <span>Viên uống con nhộng (10 vàng)</span>
+                    <button onclick="buyItem('Viên uống con nhộng', 10)">Mua</button>
+                </div>
+                <div class="shop-item">
+                    <span>Bánh thưởng (8 vàng)</span>
+                    <button onclick="buyItem('Bánh thưởng', 8)">Mua</button>
+                </div>
+                <div class="shop-item">
+                    <span>Vương liệm (100 vàng)</span>
+                    <button onclick="buyItem('Vương liệm', 100)">Mua</button>
+                </div>
+                <div class="shop-item">
+                    <span>Rau má (666 vàng)</span>
+                    <button onclick="buyItem('Rau má', 666)">Mua</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="pet-display" id="pet-display">
+            <img id="pet-image" src="" alt="Pet Image" />
+        </div>
         <div class="pet-status" id="pet-status"></div>
-        <div class="special-status" id="special-status"></div>
+        <div class="action-status" id="action-status"></div>
         <button class="info-button" onclick="showDialog()">i</button>
         <div class="stats">
+            <div class="stat-bar">
+                <span class="stat-label">❤️</span>
+                <div class="progress-container">
+                    <div class="progress-bar" id="health-bar" style="width: 100%;"></div>
+                </div>
+                <span class="stat-value" id="pet-health">100/100</span>
+            </div>
             <div class="stat-bar">
                 <span class="stat-label">⚡</span>
                 <div class="progress-container">
@@ -374,7 +488,14 @@
                 <span class="stat-value" id="pet-hunger">50/100</span>
             </div>
             <div class="stat-bar">
-                <span class="stat-label">❤️</span>
+                <span class="stat-label">🛁</span>
+                <div class="progress-container">
+                    <div class="progress-bar" id="cleanliness-bar" style="width: 100%;"></div>
+                </div>
+                <span class="stat-value" id="pet-cleanliness">100/100</span>
+            </div>
+            <div class="stat-bar">
+                <span class="stat-label">😊</span>
                 <div class="progress-container">
                     <div class="progress-bar" id="happiness-bar" style="width: 30%;"></div>
                 </div>
@@ -382,9 +503,11 @@
             </div>
         </div>
         <div class="actions">
-            <button onclick="feedPet()">Cho ăn</button>
-            <button onclick="playWithPet()">Chơi</button>
-            <button onclick="restPet()">Nghỉ ngơi</button>
+            <button id="play-button" onclick="playWithPet()">Chơi</button>
+            <button id="bathe-button" onclick="bathePet()">Tắm rửa</button>
+            <button id="feed-button" onclick="feedPet()">Cho ăn</button>
+            <button id="care-button" onclick="careForPet()">Chăm sóc</button>
+            <button id="sleep-button" onclick="sleepPet()">Ngủ</button>
         </div>
         <div class="items">
             <select id="item-select">
@@ -427,32 +550,48 @@
         const db = getFirestore(app);
 
         const COLOR_MAP = {
-            Đỏ: "#ff6f61",
-            Lục: "#61ff6f",
-            Xanh: "#6f61ff",
-            Vàng: "#ffff61",
-            Hồng: "#ff61ff",
-            Lam: "#61ffff",
-            Tím: "#6f61ff",
-            Cam: "#ff9161",
-            Nâu: "#6f4c3e",
-            Trắng: "#ffffff",
+            Đỏ: "#FF0000",
+            Lục: "#008000",
+            Xanh: "#0000FF",
+            Vàng: "#FFFF00",
+            Hồng: "#FFC0CB",
+            Lam: "#00FFFF",
+            Tím: "#800080",
+            Cam: "#FFA500",
+            Nâu: "#964B00",
+            Trắng: "#FFFFFF",
             Đen: "#000000",
             Xám: "#808080",
         };
         const UPDATE_INTERVAL_SECONDS = 10;
-        const HAPPINESS_LEVEL_UP_THRESHOLD = 5;
+        const SLOW_DECAY_THRESHOLD_SECONDS = 3600;
+        const SLOW_DECAY_MULTIPLIER = 0.5;
+        const WELCOME_BACK_THRESHOLD_SECONDS = 43200;
+        const WELCOME_BACK_BOOST = 15;
+        const PASSIVE_RECOVERY_THRESHOLD = 70;
+        const PASSIVE_RECOVERY_AMOUNT = 1;
 
         const elements = {
             petDisplay: document.getElementById("pet-display"),
+            petImage: document.getElementById("pet-image"),
             petStatus: document.getElementById("pet-status"),
-            specialStatus: document.getElementById("special-status"),
+            actionStatus: document.getElementById("action-status"),
+            healthBar: document.getElementById("health-bar"),
             energyBar: document.getElementById("energy-bar"),
             hungerBar: document.getElementById("hunger-bar"),
+            cleanlinessBar: document.getElementById("cleanliness-bar"),
             happinessBar: document.getElementById("happiness-bar"),
+            petHealth: document.getElementById("pet-health"),
             petEnergy: document.getElementById("pet-energy"),
             petHunger: document.getElementById("pet-hunger"),
+            petCleanliness: document.getElementById("pet-cleanliness"),
             petHappiness: document.getElementById("pet-happiness"),
+            goldAmount: document.getElementById("gold-amount"),
+            playButton: document.getElementById("play-button"),
+            batheButton: document.getElementById("bathe-button"),
+            feedButton: document.getElementById("feed-button"),
+            careButton: document.getElementById("care-button"),
+            sleepButton: document.getElementById("sleep-button"),
             itemSelect: document.getElementById("item-select"),
             dialogPetName: document.getElementById("dialog-pet-name"),
             dialogPetType: document.getElementById("dialog-pet-type"),
@@ -461,6 +600,8 @@
             dialogPetLevel: document.getElementById("dialog-pet-level"),
             infoDialog: document.getElementById("info-dialog"),
             overlay: document.getElementById("overlay"),
+            shopOverlay: document.getElementById("shop-overlay"),
+            shopDialog: document.getElementById("shop-dialog"),
         };
 
         const sounds = {
@@ -471,9 +612,43 @@
 
         let petData = null;
         let updateInterval = null;
-        let happinessHighCount = 0;
+        let isInteracting = false;
+        let currentAction = null;
+        let actionTimer = null;
+        let timeLeft = 0;
+        let lowStatCount = 0;
+        let messageUpdateCounter = 0;
+        const MESSAGE_UPDATE_INTERVAL = 3;
         const urlParams = new URLSearchParams(window.location.search);
         const uid = urlParams.get('uid');
+
+        const actionMessages = {
+            "Chơi": [
+                (petName, time) => `${petName} đang vui vẻ chơi đùa! Còn ${time} nữa nhé! 🎉`,
+                (petName, time) => `${petName} đang chạy nhảy khắp nơi! Còn ${time} để vui hết mình! 🏃`,
+                (petName, time) => `${petName} đang chơi trò đuổi bắt! Còn ${time} nữa thôi! 💨`
+            ],
+            "Tắm rửa": [
+                (petName, time) => `${petName} đang thư giãn trong bồn tắm! Còn ${time} nữa thôi! 🛁`,
+                (petName, time) => `${petName} đang nghịch nước tung tóe! Còn ${time} để sạch sẽ! 💦`,
+                (petName, time) => `${petName} đang thích thú với bọt xà phòng! Còn ${time} nữa nhé! 🧼`
+            ],
+            "Cho ăn": [
+                (petName, time) => `${petName} đang ăn ngon lành! Còn ${time} để no bụng! 🍽️`,
+                (petName, time) => `${petName} đang nhai nhóp nhép! Còn ${time} nữa thôi! 🥄`,
+                (petName, time) => `${petName} đang thưởng thức bữa ăn! Còn ${time} để no nê! 🍴`
+            ],
+            "Chăm sóc": [
+                (petName, time) => `${petName} đang được chăm sóc cẩn thận! Còn ${time} nữa thôi! ❤️`,
+                (petName, time) => `${petName} đang cảm nhận sự yêu thương! Còn ${time} để khỏe mạnh! 💖`,
+                (petName, time) => `${petName} đang được vuốt ve nhẹ nhàng! Còn ${time} nữa nhé! 🐾`
+            ],
+            "Ngủ": [
+                (petName, time) => `${petName} đang ngủ ngon giấc! Còn ${time} để tỉnh táo! 💤`,
+                (petName, time) => `${petName} đang mơ mộng trong giấc ngủ! Còn ${time} nữa thôi! 🌙`,
+                (petName, time) => `${petName} đang ngáy khò khò! Còn ${time} để nghỉ ngơi! 😴`
+            ]
+        };
 
         async function loadPet() {
             if (!uid) {
@@ -487,7 +662,10 @@
 
                 if (petSnap.exists()) {
                     petData = petSnap.data();
+                    if (!petData.gold) petData.gold = 0;
+                    petData.nextLevelExp = 100 + (petData.level - 1) * 50;
                     await updateStatsBasedOnTime();
+                    applyWelcomeBackBoost();
                     populateItems();
                     displayPet();
                     startStatUpdates();
@@ -511,19 +689,32 @@
         }
 
         function getPetStatus() {
-            const happinessState = petData.happiness >= 50 ? "Vui 😊" : "Buồn 😢";
-            const hungerState = petData.hunger >= 50 ? "No 🥄" : "Đói 🍽️";
-            const energyState = petData.energy >= 50 ? "Tỉnh táo ⚡" : "Ngái ngủ 💤";
-            return `${petData.petName} đang cảm thấy: ${happinessState}, ${hungerState}, ${energyState}`;
+            const allStats = [petData.health, petData.energy, petData.hunger, petData.cleanliness, petData.happiness];
+            if (allStats.every(stat => stat > 80)) {
+                return `${petData.petName} đang cảm thấy Tuyệt vời! 🎉`;
+            }
+
+            if (petData.health < 30) return `${petData.petName} đang Ốm yếu 🤒`;
+            if (petData.energy < 30) return `${petData.petName} đang Ngái ngủ 💤`;
+            if (petData.hunger < 30) return `${petData.petName} đang Đói 🍽️`;
+            if (petData.cleanliness < 30) return `${petData.petName} đang Bẩn 🐾`;
+            if (petData.happiness < 30) return `${petData.petName} đang Buồn 😢`;
+
+            return `${petData.petName} đang cảm thấy bình thường`;
         }
 
         function displayPet() {
+            elements.petHealth.textContent = `${petData.health}/100`;
             elements.petEnergy.textContent = `${petData.energy}/100`;
             elements.petHunger.textContent = `${petData.hunger}/100`;
+            elements.petCleanliness.textContent = `${petData.cleanliness}/100`;
             elements.petHappiness.textContent = `${petData.happiness}/100`;
+            elements.healthBar.style.width = `${petData.health}%`;
             elements.energyBar.style.width = `${petData.energy}%`;
             elements.hungerBar.style.width = `${petData.hunger}%`;
+            elements.cleanlinessBar.style.width = `${petData.cleanliness}%`;
             elements.happinessBar.style.width = `${petData.happiness}%`;
+            elements.goldAmount.textContent = petData.gold;
 
             elements.dialogPetName.textContent = petData.petName;
             elements.dialogPetType.textContent = petData.petType;
@@ -532,26 +723,80 @@
             elements.dialogPetLevel.textContent = petData.level;
 
             elements.petDisplay.style.backgroundColor = COLOR_MAP[petData.color] || "#fff";
-            elements.petDisplay.classList.remove("jumping", "sad");
+            elements.petDisplay.classList.remove("jumping", "sad", "shaking", "fading");
 
-            if (petData.hunger < 30) {
-                elements.petDisplay.textContent = "😾";
-                sounds.hungry.play();
-            } else if (petData.happiness < 30) {
-                elements.petDisplay.textContent = "😿";
-                elements.petDisplay.classList.add("sad");
-                sounds.sad.play();
-            } else if (petData.happiness > 80) {
-                elements.petDisplay.textContent = "😸";
-                elements.petDisplay.classList.add("jumping");
+            const petType = petData.petType.toLowerCase();
+            const petImage = elements.petImage;
+
+            if (isInteracting && currentAction) {
+                const actionImageMap = {
+                    "Chơi": "playing",
+                    "Tắm rửa": "bathing",
+                    "Cho ăn": "eating",
+                    "Chăm sóc": "caring",
+                    "Ngủ": "sleeping"
+                };
+                const actionImage = actionImageMap[currentAction];
+                petImage.src = `img/${petType}/${actionImage}.png`;
+
+                const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+                const seconds = (timeLeft % 60).toString().padStart(2, '0');
+                const timeDisplay = `${minutes}:${seconds}`;
+                const messages = actionMessages[currentAction];
+                let message;
+                if (messages && messageUpdateCounter % MESSAGE_UPDATE_INTERVAL === 0) {
+                    message = messages[Math.floor(Math.random() * messages.length)](petData.petName, timeDisplay);
+                } else {
+                    message = elements.actionStatus.textContent.replace(/\d{2}:\d{2}/, timeDisplay);
+                }
+                elements.actionStatus.textContent = message;
+                elements.actionStatus.classList.add("show");
             } else {
-                elements.petDisplay.textContent = "😺";
+                const allStats = [petData.health, petData.energy, petData.hunger, petData.cleanliness, petData.happiness];
+                if (allStats.every(stat => stat > 80)) {
+                    petImage.src = `img/${petType}/happy.png`;
+                    elements.petDisplay.classList.add("jumping");
+                } else if (petData.health < 30) {
+                    petImage.src = `img/${petType}/sick.png`;
+                } else if (petData.energy < 30) {
+                    petImage.src = `img/${petType}/asleep.png`;
+                    elements.petDisplay.classList.add("fading");
+                } else if (petData.hunger < 30) {
+                    petImage.src = `img/${petType}/hungry.png`;
+                    elements.petDisplay.classList.add("shaking");
+                    sounds.hungry.play();
+                } else if (petData.cleanliness < 30) {
+                    petImage.src = `img/${petType}/dirty.png`;
+                } else if (petData.happiness < 30) {
+                    petImage.src = `img/${petType}/sad.png`;
+                    elements.petDisplay.classList.add("sad");
+                    sounds.sad.play();
+                } else {
+                    petImage.src = `img/${petType}/normal.png`;
+                }
+                elements.actionStatus.classList.remove("show");
             }
 
             elements.petStatus.textContent = getPetStatus();
+        }
 
-            elements.specialStatus.textContent = `${petData.petName} đang cảm thấy Tuyệt vời! 🎉`;
-            elements.specialStatus.style.display = (petData.energy > 80 && petData.hunger > 80 && petData.happiness > 80) ? "block" : "none";
+        async function applyWelcomeBackBoost() {
+            if (!petData.lastUpdated) return;
+
+            const lastUpdated = petData.lastUpdated.toDate();
+            const now = new Date();
+            const timeDiffSeconds = Math.floor((now - lastUpdated) / 1000);
+
+            if (timeDiffSeconds >= WELCOME_BACK_THRESHOLD_SECONDS) {
+                petData.health = Math.min(petData.health + WELCOME_BACK_BOOST, 100);
+                petData.energy = Math.min(petData.energy + WELCOME_BACK_BOOST, 100);
+                petData.hunger = Math.min(petData.hunger + WELCOME_BACK_BOOST, 100);
+                petData.cleanliness = Math.min(petData.cleanliness + WELCOME_BACK_BOOST, 100);
+                petData.happiness = Math.min(petData.happiness + WELCOME_BACK_BOOST, 100);
+                alert(`Chào mừng bạn trở lại! ${petData.petName} rất vui khi gặp lại bạn và đã được hồi phục +${WELCOME_BACK_BOOST} cho tất cả chỉ số!`);
+                petData.lastUpdated = serverTimestamp();
+                await updatePet();
+            }
         }
 
         async function updateStatsBasedOnTime() {
@@ -566,9 +811,17 @@
             const updatesMissed = Math.floor(timeDiffSeconds / UPDATE_INTERVAL_SECONDS);
 
             if (updatesMissed > 0) {
-                petData.energy = Math.max(petData.energy - 2 * updatesMissed, 0);
-                petData.hunger = Math.max(petData.hunger - 5 * updatesMissed, 0);
-                petData.happiness = Math.max(petData.happiness - 2 * updatesMissed, 0);
+                let decayMultiplier = 1;
+                if (timeDiffSeconds >= SLOW_DECAY_THRESHOLD_SECONDS) {
+                    decayMultiplier = SLOW_DECAY_MULTIPLIER;
+                }
+
+                petData.health = Math.max(petData.health - 0.5 * updatesMissed * decayMultiplier, 0);
+                petData.energy = Math.max(petData.energy - 1 * updatesMissed * decayMultiplier, 0);
+                petData.hunger = Math.max(petData.hunger - 1 * updatesMissed * decayMultiplier, 0);
+                petData.cleanliness = Math.max(petData.cleanliness - 0.5 * updatesMissed * decayMultiplier, 0);
+                petData.happiness = Math.max(petData.happiness - 0.5 * updatesMissed * decayMultiplier, 0);
+
                 petData.lastUpdated = serverTimestamp();
                 await updatePet();
             }
@@ -576,23 +829,54 @@
 
         function startStatUpdates() {
             updateInterval = setInterval(async () => {
-                petData.energy = Math.max(petData.energy - 2, 0);
-                petData.hunger = Math.max(petData.hunger - 5, 0);
-                petData.happiness = Math.max(petData.happiness - 2, 0);
-                petData.lastUpdated = serverTimestamp();
+                // Online decay
+                petData.health = Math.max(petData.health - 0.5, 0);
+                petData.energy = Math.max(petData.energy - 1, 0);
+                petData.hunger = Math.max(petData.hunger - 1.5, 0);
+                petData.cleanliness = Math.max(petData.cleanliness - 0.5, 0);
+                petData.happiness = Math.max(petData.happiness - 1, 0);
 
-                if (petData.happiness > 80) {
-                    happinessHighCount++;
-                    if (happinessHighCount >= HAPPINESS_LEVEL_UP_THRESHOLD) {
-                        petData.level += 1;
-                        happinessHighCount = 0;
-                        sounds.levelUp.play();
-                        alert(`Chúc mừng! ${petData.petName} đã lên cấp ${petData.level}!`);
+                // Additional health penalty
+                const lowStats = [petData.energy, petData.hunger, petData.cleanliness, petData.happiness].filter(stat => stat < 30).length;
+                if (lowStats > 0) {
+                    lowStatCount++;
+                    if (lowStatCount >= 3) {
+                        petData.health = Math.max(petData.health - 5, 0);
+                        lowStatCount = 0;
                     }
                 } else {
-                    happinessHighCount = 0;
+                    lowStatCount = 0;
                 }
 
+                // Passive recovery
+                const allStats = [petData.health, petData.energy, petData.hunger, petData.cleanliness, petData.happiness];
+                if (allStats.every(stat => stat >= PASSIVE_RECOVERY_THRESHOLD)) {
+                    petData.health = Math.min(petData.health + PASSIVE_RECOVERY_AMOUNT, 100);
+                    petData.energy = Math.min(petData.energy + PASSIVE_RECOVERY_AMOUNT, 100);
+                    petData.hunger = Math.min(petData.hunger + PASSIVE_RECOVERY_AMOUNT, 100);
+                    petData.cleanliness = Math.min(petData.cleanliness + PASSIVE_RECOVERY_AMOUNT, 100);
+                    petData.happiness = Math.min(petData.happiness + PASSIVE_RECOVERY_AMOUNT, 100);
+                }
+
+                // Exp gains
+                if (allStats.every(stat => stat > 80)) {
+                    petData.exp += 3;
+                } else if (allStats.every(stat => stat > 50)) {
+                    petData.exp += 2;
+                }
+
+                // Level up
+                if (petData.exp >= petData.nextLevelExp) {
+                    petData.level += 1;
+                    petData.exp = 0;
+                    petData.nextLevelExp = 100 + (petData.level - 1) * 50;
+                    const goldReward = 15 + (petData.level - 1) * 10;
+                    petData.gold += goldReward;
+                    sounds.levelUp.play();
+                    alert(`Chúc mừng! ${petData.petName} đã lên cấp ${petData.level}! Bạn nhận được ${goldReward} vàng!`);
+                }
+
+                petData.lastUpdated = serverTimestamp();
                 await updatePet();
                 displayPet();
             }, UPDATE_INTERVAL_SECONDS * 1000);
@@ -614,7 +898,7 @@
                 const petRef = doc(db, "Users", uid);
                 await deleteDoc(petRef);
                 console.log("Pet deleted successfully!");
-                alert(`${petData.petName} đã được xóa thành công!`);
+                alert(`${petData.petName} đã được gửi vào trung tâm!`);
                 window.location.href = `creation.html?uid=${uid}`;
             } catch (error) {
                 console.error("Lỗi khi xóa pet:", error);
@@ -622,34 +906,122 @@
             }
         }
 
-        window.feedPet = async () => {
-            petData.hunger = Math.min(petData.hunger + 20, 100);
-            petData.happiness = Math.min(petData.happiness + 5, 100);
-            petData.energy = Math.max(petData.energy - 5, 0);
-            petData.lastUpdated = serverTimestamp();
-            happinessHighCount = petData.happiness > 80 ? happinessHighCount + 1 : 0;
-            await updatePet();
+        function startInteraction(actionName, duration, callback) {
+            if (isInteracting) return alert(`${petData.petName} đang bận, hãy đợi một chút!`);
+
+            isInteracting = true;
+            currentAction = actionName;
+            timeLeft = duration;
+            messageUpdateCounter = 0;
+
+            elements.playButton.disabled = true;
+            elements.batheButton.disabled = true;
+            elements.feedButton.disabled = true;
+            elements.careButton.disabled = true;
+            elements.sleepButton.disabled = true;
+
             displayPet();
+
+            actionTimer = setInterval(() => {
+                timeLeft--;
+                messageUpdateCounter++;
+
+                displayPet();
+
+                if (timeLeft <= 0) {
+                    clearInterval(actionTimer);
+                    isInteracting = false;
+                    currentAction = null;
+                    timeLeft = 0;
+                    messageUpdateCounter = 0;
+                    callback();
+                    elements.playButton.disabled = false;
+                    elements.batheButton.disabled = false;
+                    elements.feedButton.disabled = false;
+                    elements.careButton.disabled = false;
+                    elements.sleepButton.disabled = false;
+                    elements.actionStatus.classList.remove("show");
+                    displayPet();
+                }
+            }, 1000);
+        }
+
+        window.feedPet = async () => {
+            if (petData.hunger >= 100) return alert(`${petData.petName} đã no, không thể cho ăn thêm!`);
+            startInteraction("Cho ăn", 5, async () => {
+                petData.hunger = Math.min(petData.hunger + 30, 100);
+                petData.happiness = Math.min(petData.happiness + 10, 100);
+                petData.energy = Math.max(petData.energy - 3, 0);
+                petData.cleanliness = Math.max(petData.cleanliness - 1, 0);
+                petData.exp += 15;
+                petData.gold += 5;
+                petData.lastUpdated = serverTimestamp();
+                await updatePet();
+                displayPet();
+            });
         };
 
         window.playWithPet = async () => {
-            petData.happiness = Math.min(petData.happiness + 20, 100);
-            petData.energy = Math.max(petData.energy - 10, 0);
-            petData.hunger = Math.max(petData.hunger - 10, 0);
-            petData.lastUpdated = serverTimestamp();
-            happinessHighCount = petData.happiness > 80 ? happinessHighCount + 1 : 0;
-            await updatePet();
-            displayPet();
+            startInteraction("Chơi", 8, async () => {
+                petData.happiness = Math.min(petData.happiness + 25, 100);
+                petData.energy = Math.max(petData.energy - 5, 0);
+                petData.hunger = Math.max(petData.hunger - 5, 0);
+                petData.cleanliness = Math.max(petData.cleanliness - 3, 0);
+                petData.exp += 20;
+                petData.gold += 5;
+                petData.lastUpdated = serverTimestamp();
+                await updatePet();
+                displayPet();
+            });
         };
 
-        window.restPet = async () => {
-            petData.energy = Math.min(petData.energy + 20, 100);
-            petData.hunger = Math.max(petData.hunger - 5, 0);
-            petData.happiness = Math.max(petData.happiness - 5, 0);
-            petData.lastUpdated = serverTimestamp();
-            happinessHighCount = petData.happiness > 80 ? happinessHighCount + 1 : 0;
-            await updatePet();
-            displayPet();
+        window.bathePet = async () => {
+            if (petData.cleanliness >= 100) return alert(`${petData.petName} đã sạch sẽ, không cần tắm thêm!`);
+            startInteraction("Tắm rửa", 6, async () => {
+                const wasDirty = petData.cleanliness < 30;
+                petData.cleanliness = Math.min(petData.cleanliness + 30, 100);
+                petData.happiness = Math.min(petData.happiness + 15, 100);
+                if (wasDirty) petData.happiness = Math.min(petData.happiness + 10, 100);
+                petData.energy = Math.max(petData.energy - 3, 0);
+                petData.exp += 15;
+                petData.gold += 4;
+                petData.lastUpdated = serverTimestamp();
+                await updatePet();
+                displayPet();
+            });
+        };
+
+        window.careForPet = async () => {
+            if (petData.health >= 100) return alert(`${petData.petName} đã khỏe mạnh, không cần chăm sóc thêm!`);
+            startInteraction("Chăm sóc", 10, async () => {
+                const wasSick = petData.health < 30;
+                petData.health = Math.min(petData.health + 25, 100);
+                petData.happiness = Math.min(petData.happiness + 15, 100);
+                if (wasSick) petData.happiness = Math.min(petData.happiness + 10, 100);
+                petData.energy = Math.max(petData.energy - 3, 0);
+                petData.exp += 25;
+                petData.gold += 6;
+                petData.lastUpdated = serverTimestamp();
+                await updatePet();
+                displayPet();
+            });
+        };
+
+        window.sleepPet = async () => {
+            if (petData.energy >= 100) return alert(`${petData.petName} đã đầy năng lượng, không cần ngủ thêm!`);
+            startInteraction("Ngủ", 12, async () => {
+                const wasAsleep = petData.energy < 30;
+                petData.energy = Math.min(petData.energy + 40, 100);
+                petData.hunger = Math.max(petData.hunger - 3, 0);
+                petData.happiness = Math.max(petData.happiness - 3, 0);
+                petData.cleanliness = Math.max(petData.cleanliness - 2, 0);
+                if (wasAsleep) petData.happiness = Math.min(petData.happiness + 10, 100);
+                petData.exp += 15;
+                petData.gold += 5;
+                petData.lastUpdated = serverTimestamp();
+                await updatePet();
+                displayPet();
+            });
         };
 
         window.useItem = async () => {
@@ -657,13 +1029,98 @@
             if (!selectedItem) return alert("Vui lòng chọn một vật phẩm!");
 
             if (selectedItem === "Thức ăn đặc biệt") {
-                petData.hunger = Math.min(petData.hunger + 50, 100);
-                alert(`${petData.petName} đã dùng Thức ăn đặc biệt! Hunger +50`);
-            } else {
-                alert(`${petData.petName} đã dùng ${selectedItem}! (Chưa có hiệu ứng cho vật phẩm này)`);
+                petData.hunger = Math.min(petData.hunger + 40, 100);
+                petData.happiness = Math.min(petData.happiness + 10, 100);
+                petData.energy = Math.min(petData.energy + 5, 100);
+                alert(`${petData.petName} đã dùng Thức ăn đặc biệt! Hunger +40, Happiness +10, Energy +5`);
+            } else if (selectedItem === "Viên uống con nhộng") {
+                petData.health = Math.min(petData.health + 30, 100);
+                petData.energy = Math.min(petData.energy + 10, 100);
+                petData.happiness = Math.min(petData.happiness + 5, 100);
+                alert(`${petData.petName} đã dùng Viên uống con nhộng! Health +30, Energy +10, Happiness +5`);
+            } else if (selectedItem === "Bánh thưởng") {
+                petData.happiness = Math.min(petData.happiness + 20, 100);
+                petData.hunger = Math.min(petData.hunger + 15, 100);
+                petData.energy = Math.max(petData.energy - 5, 0);
+                alert(`${petData.petName} đã dùng Bánh thưởng! Happiness +20, Hunger +15, Energy -5`);
+            } else if (selectedItem === "Vương liệm") {
+                const stats = ["hunger", "cleanliness", "health", "energy", "happiness"];
+                const statNames = {
+                    hunger: "Hunger",
+                    cleanliness: "Cleanliness",
+                    health: "Health",
+                    energy: "Energy",
+                    happiness: "Happiness"
+                };
+                
+                const numStatsToAffect = Math.floor(Math.random() * 5) + 1;
+                
+                const shuffledStats = stats.sort(() => Math.random() - 0.5);
+                const affectedStats = shuffledStats.slice(0, numStatsToAffect);
+                
+                let effectMessage = `${petData.petName} đã chơi Vương liệm! Hiệu ứng:\n`;
+                
+                affectedStats.forEach(stat => {
+                    const changeValue = Math.floor(Math.random() * 101);
+                    const isIncrease = Math.random() < 0.5;
+                    
+                    const previousValue = petData[stat];
+                    if (isIncrease) {
+                        petData[stat] = Math.min(petData[stat] + changeValue, 100);
+                        effectMessage += `${statNames[stat]} +${changeValue} (từ ${previousValue} lên ${petData[stat]})\n`;
+                    } else {
+                        petData[stat] = Math.max(petData[stat] - changeValue, 0);
+                        effectMessage += `${statNames[stat]} -${changeValue} (từ ${previousValue} xuống ${petData[stat]})\n`;
+                    }
+                });
+                
+                alert(effectMessage);
+            } else if (selectedItem === "Rau má") {
+                petData.health = Math.min(petData.health + 20, 100);
+                petData.energy = Math.min(petData.energy + 20, 100);
+                petData.hunger = Math.min(petData.hunger + 20, 100);
+                petData.cleanliness = Math.min(petData.cleanliness + 20, 100);
+                petData.happiness = Math.min(petData.happiness + 20, 100);
+                let effectMessage = `${petData.petName} đã dùng Rau má! Tất cả chỉ số +20`;
+                if (petData.items.length > 1) {
+                    const remainingItems = petData.items.filter(item => item !== "Rau má");
+                    if (remainingItems.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * remainingItems.length);
+                        const removedItem = remainingItems[randomIndex];
+                        petData.items = petData.items.filter(item => item !== removedItem);
+                        effectMessage += `, nhưng bạn đã mất ${removedItem}!`;
+                    }
+                }
+                alert(effectMessage);
             }
 
             petData.items = petData.items.filter(item => item !== selectedItem);
+            petData.lastUpdated = serverTimestamp();
+            await updatePet();
+            populateItems();
+            displayPet();
+        };
+
+        window.showShop = () => {
+            elements.shopDialog.style.display = "block";
+            elements.shopOverlay.style.display = "block";
+        };
+
+        window.closeShop = () => {
+            elements.shopDialog.style.display = "none";
+            elements.shopOverlay.style.display = "none";
+        };
+
+        window.buyItem = async (itemName, cost) => {
+            if (petData.gold < cost) {
+                alert("Bạn không đủ vàng để mua vật phẩm này!");
+                return;
+            }
+
+            petData.gold -= cost;
+            petData.items.push(itemName);
+            alert(`Bạn đã mua ${itemName}!`);
+
             petData.lastUpdated = serverTimestamp();
             await updatePet();
             populateItems();
@@ -681,7 +1138,7 @@
         };
 
         window.confirmDeletePet = () => {
-            if (window.confirm(`Bạn có chắc chắn muốn xóa ${petData.petName} không? Hành động này không thể hoàn tác!`)) {
+            if (window.confirm(`Bạn có chắc chắn muốn gửi ${petData.petName} vào trung tâm? Hành động này không thể hoàn tác!`)) {
                 deletePet();
             } else {
                 closeDialog();

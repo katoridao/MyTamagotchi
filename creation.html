@@ -78,7 +78,33 @@
         .loading-message {
             color: #555;
         }
-
+        .pet-preview {
+            width: 100px;
+            height: 100px;
+            margin: 1rem auto;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ccc;
+            transition: background-color 0.3s ease;
+        }
+        .pet-preview-inner {
+            width: 80px;
+            height: 80px;
+            background-color: #fff;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .pet-preview img {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            display: none;
+        }
+    
         /* Tablet (max-width: 768px) */
         @media (max-width: 768px) {
             .creation-container {
@@ -99,8 +125,16 @@
             .error, .loading-message {
                 font-size: 0.8125rem;
             }
+            .pet-preview {
+                width: 80px;
+                height: 80px;
+            }
+            .pet-preview-inner {
+                width: 60px;
+                height: 60px;
+            }
         }
-
+    
         /* Mobile (max-width: 480px) */
         @media (max-width: 480px) {
             body {
@@ -129,12 +163,23 @@
             .error, .loading-message {
                 font-size: 0.75rem;
             }
+            .pet-preview {
+                width: 60px;
+                height: 60px;
+            }
+            .pet-preview-inner {
+                width: 45px;
+                height: 45px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="creation-container">
         <h2>Tạo Pet Của Bạn</h2>
+        <div class="pet-preview">
+            <img id="pet-preview-image" src="" alt="Pet Preview" />
+        </div>
         <div class="form-group">
             <label for="pet-name">Tên Pet:</label>
             <input type="text" id="pet-name" placeholder="Nhập tên pet">
@@ -142,7 +187,7 @@
         </div>
         <div class="form-group">
             <label for="pet-type">Loại Pet:</label>
-            <select id="pet-type">
+            <select id="pet-type" onchange="updatePetPreview()">
                 <option value="">--Chọn loại pet--</option>
             </select>
             <div class="error" id="type-error">Vui lòng chọn loại pet!</div>
@@ -151,7 +196,7 @@
         </div>
         <div class="form-group">
             <label for="pet-color">Màu Sắc:</label>
-            <select id="pet-color">
+            <select id="pet-color" onchange="updatePetColor()">
                 <option value="">--Chọn màu sắc--</option>
                 <option value="Đỏ">Đỏ</option>
                 <option value="Lục">Lục</option>
@@ -176,7 +221,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-
+    
         const firebaseConfig = {
             apiKey: "AIzaSyCgd64xynT0ppg6-E1RrPx2QEFZONTaIqM",
             authDomain: "mytamagotchi-fb787.firebaseapp.com",
@@ -186,18 +231,35 @@
             appId: "1:427722619339:web:123996eab78d49202bde4e",
             measurementId: "G-CGZZDQRTEP"
         };
-
+    
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-
+    
+        const COLOR_MAP = {
+            Đỏ: "#FF0000",
+            Lục: "#008000",
+            Xanh: "#0000FF",
+            Vàng: "#FFFF00",
+            Hồng: "#FFC0CB",
+            Lam: "#00FFFF",
+            Tím: "#800080",
+            Cam: "#FFA500",
+            Nâu: "#964B00",
+            Trắng: "#FFFFFF",
+            Đen: "#000000",
+            Xám: "#808080",
+        };
+    
         const urlParams = new URLSearchParams(window.location.search);
         const uid = urlParams.get('uid');
-
+    
         const elements = {
             petName: document.getElementById("pet-name"),
             petType: document.getElementById("pet-type"),
             petColor: document.getElementById("pet-color"),
+            petPreview: document.querySelector(".pet-preview"),
+            petPreviewImage: document.getElementById("pet-preview-image"),
             nameError: document.getElementById("name-error"),
             typeError: document.getElementById("type-error"),
             colorError: document.getElementById("color-error"),
@@ -206,18 +268,19 @@
             createButton: document.getElementById("create-pet-button"),
             createLoading: document.getElementById("create-loading"),
         };
-
+    
+        // Hàm tải danh sách loại pet từ Firestore
         async function loadPetTypes() {
             elements.petType.innerHTML = '<option value="">--Chọn loại pet--</option>';
             elements.petTypeError.style.display = "none";
             elements.petTypeLoading.style.display = "block";
-
+    
             try {
                 const catesSnapshot = await getDocs(collection(db, "Cates"));
                 if (catesSnapshot.empty) {
                     throw new Error("Collection 'Cates' trống. Vui lòng kiểm tra Firestore.");
                 }
-
+    
                 let hasPetTypes = false;
                 catesSnapshot.forEach(docSnapshot => {
                     const data = docSnapshot.data();
@@ -228,7 +291,7 @@
                         elements.petType.appendChild(option);
                     }
                 });
-
+    
                 if (!hasPetTypes) {
                     throw new Error("Không tìm thấy loại pet nào! Vui lòng kiểm tra trường 'name' trong Firestore.");
                 }
@@ -240,13 +303,35 @@
                 elements.petTypeLoading.style.display = "none";
             }
         }
-
+    
+        // Hàm cập nhật hình ảnh pet dựa trên loại pet được chọn
+        function updatePetPreview() {
+            const petType = elements.petType.value.toLowerCase();
+            if (petType) {
+                elements.petPreviewImage.src = `img/${petType}/normal.png`;
+                elements.petPreviewImage.style.display = "block";
+            } else {
+                elements.petPreviewImage.style.display = "none";
+            }
+        }
+    
+        // Hàm cập nhật màu sắc cho pet
+        function updatePetColor() {
+            const selectedColor = elements.petColor.value;
+            if (selectedColor && COLOR_MAP[selectedColor]) {
+                elements.petPreview.style.backgroundColor = COLOR_MAP[selectedColor]; // Áp dụng màu cho nền
+            } else {
+                elements.petPreview.style.backgroundColor = "#ccc"; // Mặc định nếu không chọn màu
+            }
+        }
+    
+        // Hàm kiểm tra tính hợp lệ của form
         function validateForm(petName, petType, petColor) {
             let hasError = false;
             elements.nameError.style.display = "none";
             elements.typeError.style.display = "none";
             elements.colorError.style.display = "none";
-
+    
             if (!petName) {
                 elements.nameError.style.display = "block";
                 hasError = true;
@@ -259,36 +344,41 @@
                 elements.colorError.style.display = "block";
                 hasError = true;
             }
-
+    
             return !hasError;
         }
-
+    
+        // Hàm tạo pet
         async function createPet() {
             const petName = elements.petName.value.trim();
             const petType = elements.petType.value;
             const petColor = elements.petColor.value;
-
+    
             if (!validateForm(petName, petType, petColor)) return;
-
+    
             elements.createButton.disabled = true;
             elements.createLoading.style.display = "block";
-
+    
             const petData = {
                 petName,
                 petType,
                 color: petColor,
                 birthDate: new Date().toLocaleDateString('vi-VN'),
                 level: 1,
-                energy: 100,
-                hunger: 100,
-                happiness: 100,
+                exp: 0,
+                nextLevelExp: 100,
+                health: 100,
+                energy: 70,
+                hunger: 70,
+                cleanliness: 70,
+                happiness: 70,
                 lastUpdated: serverTimestamp(),
-                items: ["Thức ăn đặc biệt", "Đồ chơi"]
+                items: []
             };
-
+    
             try {
                 await setDoc(doc(db, "Users", uid), petData);
-                alert(`${petName} đã được tạo thành công! Hãy chăm sóc bé nhé! 🐾`);
+                alert(`${petName} vừa trào đời! Hãy chăm sóc bé nhé! 🐾`);
                 window.location.href = `game.html?uid=${uid}`;
             } catch (error) {
                 console.error("Lỗi khi tạo pet:", error);
@@ -298,7 +388,8 @@
                 elements.createLoading.style.display = "none";
             }
         }
-
+    
+        // Kiểm tra trạng thái đăng nhập của người dùng
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 if (uid && uid === user.uid) {
@@ -313,8 +404,10 @@
                 window.location.href = "index.html";
             }
         });
-
+    
         window.createPet = createPet;
+        window.updatePetPreview = updatePetPreview;
+        window.updatePetColor = updatePetColor;
     </script>
 </body>
 </html>
