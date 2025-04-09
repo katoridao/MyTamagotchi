@@ -564,7 +564,7 @@
             Xám: "#808080",
         };
         const UPDATE_INTERVAL_SECONDS = 10;
-        const SLOW_DECAY_THRESHOLD_SECONDS = 300;
+        const SLOW_DECAY_THRESHOLD_SECONDS = 180;
         const SLOW_DECAY_MULTIPLIER = 0.5;
         const WELCOME_BACK_THRESHOLD_SECONDS = 43200;
         const WELCOME_BACK_BOOST = 15;
@@ -678,7 +678,7 @@
                 const petSnap = await getDoc(petRef);
                 if (petSnap.exists()) {
                     petData = petSnap.data();
-                    petData.nextLevelExp = 100 + (petData.level - 1) * 50;
+                    petData.nextLevelExp = 100 + (petData.level - 1) * 30;
                     await updateStatsBasedOnTime();
                     applyWelcomeBackBoost();
                     populateItems();
@@ -850,24 +850,24 @@
 
         function startStatUpdates() {
             updateInterval = setInterval(async () => {
-                // Online decay
-                petData.health = Math.max(petData.health - 0.5, 0);
-                petData.energy = Math.max(petData.energy - 1, 0);
-                petData.hunger = Math.max(petData.hunger - 1.5, 0);
-                petData.cleanliness = Math.max(petData.cleanliness - 0.5, 0);
-                petData.happiness = Math.max(petData.happiness - 1, 0);
+            // Online decay
+            petData.health = Math.max(petData.health - 0.5, 0);
+            petData.energy = Math.max(petData.energy - 1, 0);
+            petData.hunger = Math.max(petData.hunger - 1, 0);
+            petData.cleanliness = Math.max(petData.cleanliness - 0.5, 0);
+            petData.happiness = Math.max(petData.happiness - 1, 0);
 
-                // Additional health penalty
-                const lowStats = [petData.energy, petData.hunger, petData.cleanliness, petData.happiness].filter(stat => stat < 30).length;
-                if (lowStats > 0) {
-                    lowStatCount++;
-                    if (lowStatCount >= 3) {
-                        petData.health = Math.max(petData.health - 5, 0);
-                        lowStatCount = 0;
-                    }
-                } else {
+            // Additional health penalty
+            const lowStats = [petData.energy, petData.hunger, petData.cleanliness, petData.happiness].filter(stat => stat < 30).length;
+            if (lowStats > 0) {
+                lowStatCount++;
+                if (lowStatCount >= 6) {
+                    petData.health = Math.max(petData.health - 5, 0);
                     lowStatCount = 0;
                 }
+            } else {
+                lowStatCount = 0;
+            }
 
                 // Passive recovery
                 const allStats = [petData.health, petData.energy, petData.hunger, petData.cleanliness, petData.happiness];
@@ -890,8 +890,8 @@
                 if (petData.exp >= petData.nextLevelExp) {
                     petData.level += 1;
                     petData.exp = 0;
-                    petData.nextLevelExp = 100 + (petData.level - 1) * 50;
-                    const goldReward = 15 + (petData.level - 1) * 10;
+                    petData.nextLevelExp = 100 + (petData.level - 1) * 30;
+                    const goldReward = 20 + (petData.level - 1) * 15;
                     userData.gold += goldReward;
                     sounds.levelUp.play();
                     alert(`Chúc mừng! ${petData.petName} đã lên cấp ${petData.level}! Bạn nhận được ${goldReward} vàng!`);
@@ -986,7 +986,8 @@
                 petData.happiness = Math.min(petData.happiness + 10, 100);
                 petData.energy = Math.max(petData.energy - 3, 0);
                 petData.cleanliness = Math.max(petData.cleanliness - 1, 0);
-                petData.exp += 15;
+                const expMultiplier = 1 + (petData.level - 1) * 0.1;
+                petData.exp += 15 * expMultiplier;
                 userData.gold += 5;
                 petData.lastUpdated = serverTimestamp();
                 await updatePet();
@@ -998,10 +999,11 @@
             startInteraction("Chơi", 8, async () => {
                 petData.happiness = Math.min(petData.happiness + 25, 100);
                 petData.energy = Math.max(petData.energy - 5, 0);
-                petData.hunger = Math.max(petData.hunger - 5, 0);
+                petData.hunger = Math.max(petData.hunger - 2, 0);
                 petData.cleanliness = Math.max(petData.cleanliness - 3, 0);
-                petData.exp += 20;
-                userData.gold += 5;
+                const expMultiplier = 1 + (petData.level - 1) * 0.1;
+                petData.exp += 20 * expMultiplier;
+                userData.gold += 8;
                 petData.lastUpdated = serverTimestamp();
                 await updatePet();
                 displayPet();
@@ -1016,8 +1018,9 @@
                 petData.happiness = Math.min(petData.happiness + 15, 100);
                 if (wasDirty) petData.happiness = Math.min(petData.happiness + 10, 100);
                 petData.energy = Math.max(petData.energy - 3, 0);
-                petData.exp += 15;
-                userData.gold += 4;
+                const expMultiplier = 1 + (petData.level - 1) * 0.1;
+                petData.exp += 15 * expMultiplier;
+                userData.gold += 6;
                 petData.lastUpdated = serverTimestamp();
                 await updatePet();
                 displayPet();
@@ -1032,7 +1035,8 @@
                 petData.happiness = Math.min(petData.happiness + 15, 100);
                 if (wasSick) petData.happiness = Math.min(petData.happiness + 10, 100);
                 petData.energy = Math.max(petData.energy - 3, 0);
-                petData.exp += 25;
+                const expMultiplier = 1 + (petData.level - 1) * 0.1;
+                petData.exp += 25 * expMultiplier;
                 userData.gold += 6;
                 petData.lastUpdated = serverTimestamp();
                 await updatePet();
@@ -1042,14 +1046,15 @@
 
         window.sleepPet = async () => {
             if (petData.energy >= 100) return alert(`${petData.petName} đã đầy năng lượng, không cần ngủ thêm!`);
-            startInteraction("Ngủ", 12, async () => {
+            startInteraction("Ngủ", 8, async () => {
                 const wasAsleep = petData.energy < 30;
                 petData.energy = Math.min(petData.energy + 40, 100);
                 petData.hunger = Math.max(petData.hunger - 3, 0);
-                petData.happiness = Math.max(petData.happiness - 3, 0);
+                petData.happiness = Math.min(petData.happiness + 5, 100);
                 petData.cleanliness = Math.max(petData.cleanliness - 2, 0);
                 if (wasAsleep) petData.happiness = Math.min(petData.happiness + 10, 100);
-                petData.exp += 15;
+                const expMultiplier = 1 + (petData.level - 1) * 0.1;
+                petData.exp += 15 * expMultiplier;
                 userData.gold += 5;
                 petData.lastUpdated = serverTimestamp();
                 await updatePet();
