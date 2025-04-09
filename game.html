@@ -611,6 +611,8 @@
         };
 
         let petData = null;
+        let userData = null;
+        let petId = null;
         let updateInterval = null;
         let isInteracting = false;
         let currentAction = null;
@@ -657,12 +659,25 @@
             }
 
             try {
-                const petRef = doc(db, "Users", uid);
-                const petSnap = await getDoc(petRef);
+                const userRef = doc(db, "Users", uid);
+                const userSnap = await getDoc(userRef);
+                if (!userSnap.exists()) {
+                    await setDoc(userRef, { gold: 0, items: [], currentPetId: null });
+                    alert("Không tìm thấy dữ liệu người dùng! Hãy tạo pet mới.");
+                    return window.location.href = `creation.html?uid=${uid}`;
+                }
 
+                userData = userSnap.data();
+                if (!userData.currentPetId) {
+                    alert("Không tìm thấy pet!");
+                    return window.location.href = `creation.html?uid=${uid}`;
+                }
+
+                petId = userData.currentPetId;
+                const petRef = doc(db, "Pets", petId);
+                const petSnap = await getDoc(petRef);
                 if (petSnap.exists()) {
                     petData = petSnap.data();
-                    if (!petData.gold) petData.gold = 0;
                     petData.nextLevelExp = 100 + (petData.level - 1) * 50;
                     await updateStatsBasedOnTime();
                     applyWelcomeBackBoost();
@@ -681,7 +696,7 @@
 
         function populateItems() {
             elements.itemSelect.innerHTML = '<option value="">--Chọn vật phẩm--</option>';
-            petData.items.forEach(item => {
+            userData.items.forEach(item => {
                 const option = document.createElement("option");
                 option.value = option.textContent = item;
                 elements.itemSelect.appendChild(option);
@@ -714,7 +729,7 @@
             elements.hungerBar.style.width = `${petData.hunger}%`;
             elements.cleanlinessBar.style.width = `${petData.cleanliness}%`;
             elements.happinessBar.style.width = `${petData.happiness}%`;
-            elements.goldAmount.textContent = petData.gold;
+            elements.goldAmount.textContent = userData.gold;
 
             elements.dialogPetName.textContent = petData.petName;
             elements.dialogPetType.textContent = petData.petType;
@@ -871,7 +886,7 @@
                     petData.exp = 0;
                     petData.nextLevelExp = 100 + (petData.level - 1) * 50;
                     const goldReward = 15 + (petData.level - 1) * 10;
-                    petData.gold += goldReward;
+                    userData.gold += goldReward;
                     sounds.levelUp.play();
                     alert(`Chúc mừng! ${petData.petName} đã lên cấp ${petData.level}! Bạn nhận được ${goldReward} vàng!`);
                 }
@@ -884,9 +899,17 @@
 
         async function updatePet() {
             try {
-                const petRef = doc(db, "Users", uid);
+                const petRef = doc(db, "Pets", petId);
                 await updateDoc(petRef, petData);
-                console.log("Pet updated successfully!");
+
+                const userRef = doc(db, "Users", uid);
+                await updateDoc(userRef, {
+                    gold: userData.gold,
+                    items: userData.items,
+                    currentPetId: userData.currentPetId
+                });
+
+                console.log("Pet and user updated successfully!");
             } catch (error) {
                 console.error("Lỗi khi cập nhật pet:", error);
                 alert("Lỗi khi cập nhật pet: " + error.message);
@@ -895,8 +918,12 @@
 
         async function deletePet() {
             try {
-                const petRef = doc(db, "Users", uid);
+                const petRef = doc(db, "Pets", petId);
                 await deleteDoc(petRef);
+
+                const userRef = doc(db, "Users", uid);
+                await updateDoc(userRef, { currentPetId: null });
+
                 console.log("Pet deleted successfully!");
                 alert(`${petData.petName} đã được gửi vào trung tâm!`);
                 window.location.href = `creation.html?uid=${uid}`;
@@ -954,7 +981,7 @@
                 petData.energy = Math.max(petData.energy - 3, 0);
                 petData.cleanliness = Math.max(petData.cleanliness - 1, 0);
                 petData.exp += 15;
-                petData.gold += 5;
+                userData.gold += 5;
                 petData.lastUpdated = serverTimestamp();
                 await updatePet();
                 displayPet();
@@ -968,7 +995,7 @@
                 petData.hunger = Math.max(petData.hunger - 5, 0);
                 petData.cleanliness = Math.max(petData.cleanliness - 3, 0);
                 petData.exp += 20;
-                petData.gold += 5;
+                userData.gold += 5;
                 petData.lastUpdated = serverTimestamp();
                 await updatePet();
                 displayPet();
@@ -984,7 +1011,7 @@
                 if (wasDirty) petData.happiness = Math.min(petData.happiness + 10, 100);
                 petData.energy = Math.max(petData.energy - 3, 0);
                 petData.exp += 15;
-                petData.gold += 4;
+                userData.gold += 4;
                 petData.lastUpdated = serverTimestamp();
                 await updatePet();
                 displayPet();
@@ -1000,7 +1027,7 @@
                 if (wasSick) petData.happiness = Math.min(petData.happiness + 10, 100);
                 petData.energy = Math.max(petData.energy - 3, 0);
                 petData.exp += 25;
-                petData.gold += 6;
+                userData.gold += 6;
                 petData.lastUpdated = serverTimestamp();
                 await updatePet();
                 displayPet();
@@ -1017,7 +1044,7 @@
                 petData.cleanliness = Math.max(petData.cleanliness - 2, 0);
                 if (wasAsleep) petData.happiness = Math.min(petData.happiness + 10, 100);
                 petData.exp += 15;
-                petData.gold += 5;
+                userData.gold += 5;
                 petData.lastUpdated = serverTimestamp();
                 await updatePet();
                 displayPet();
@@ -1054,7 +1081,6 @@
                 };
                 
                 const numStatsToAffect = Math.floor(Math.random() * 5) + 1;
-                
                 const shuffledStats = stats.sort(() => Math.random() - 0.5);
                 const affectedStats = shuffledStats.slice(0, numStatsToAffect);
                 
@@ -1082,20 +1108,19 @@
                 petData.cleanliness = Math.min(petData.cleanliness + 20, 100);
                 petData.happiness = Math.min(petData.happiness + 20, 100);
                 let effectMessage = `${petData.petName} đã dùng Rau má! Tất cả chỉ số +20`;
-                if (petData.items.length > 1) {
-                    const remainingItems = petData.items.filter(item => item !== "Rau má");
+                if (userData.items.length > 1) {
+                    const remainingItems = userData.items.filter(item => item !== "Rau má");
                     if (remainingItems.length > 0) {
                         const randomIndex = Math.floor(Math.random() * remainingItems.length);
                         const removedItem = remainingItems[randomIndex];
-                        petData.items = petData.items.filter(item => item !== removedItem);
+                        userData.items = userData.items.filter(item => item !== removedItem);
                         effectMessage += `, nhưng bạn đã mất ${removedItem}!`;
                     }
                 }
                 alert(effectMessage);
             }
 
-            petData.items = petData.items.filter(item => item !== selectedItem);
-            petData.lastUpdated = serverTimestamp();
+            userData.items = userData.items.filter(item => item !== selectedItem);
             await updatePet();
             populateItems();
             displayPet();
@@ -1112,16 +1137,15 @@
         };
 
         window.buyItem = async (itemName, cost) => {
-            if (petData.gold < cost) {
+            if (userData.gold < cost) {
                 alert("Bạn không đủ vàng để mua vật phẩm này!");
                 return;
             }
 
-            petData.gold -= cost;
-            petData.items.push(itemName);
+            userData.gold -= cost;
+            userData.items.push(itemName);
             alert(`Bạn đã mua ${itemName}!`);
 
-            petData.lastUpdated = serverTimestamp();
             await updatePet();
             populateItems();
             displayPet();

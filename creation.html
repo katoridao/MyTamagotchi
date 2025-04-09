@@ -220,8 +220,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-    
+        import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+        
         const firebaseConfig = {
             apiKey: "AIzaSyCgd64xynT0ppg6-E1RrPx2QEFZONTaIqM",
             authDomain: "mytamagotchi-fb787.firebaseapp.com",
@@ -231,11 +231,11 @@
             appId: "1:427722619339:web:123996eab78d49202bde4e",
             measurementId: "G-CGZZDQRTEP"
         };
-    
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-    
+
         const COLOR_MAP = {
             Đỏ: "#FF0000",
             Lục: "#008000",
@@ -250,10 +250,10 @@
             Đen: "#000000",
             Xám: "#808080",
         };
-    
+
         const urlParams = new URLSearchParams(window.location.search);
         const uid = urlParams.get('uid');
-    
+
         const elements = {
             petName: document.getElementById("pet-name"),
             petType: document.getElementById("pet-type"),
@@ -268,19 +268,19 @@
             createButton: document.getElementById("create-pet-button"),
             createLoading: document.getElementById("create-loading"),
         };
-    
+
         // Hàm tải danh sách loại pet từ Firestore
         async function loadPetTypes() {
             elements.petType.innerHTML = '<option value="">--Chọn loại pet--</option>';
             elements.petTypeError.style.display = "none";
             elements.petTypeLoading.style.display = "block";
-    
+
             try {
                 const catesSnapshot = await getDocs(collection(db, "Cates"));
                 if (catesSnapshot.empty) {
                     throw new Error("Collection 'Cates' trống. Vui lòng kiểm tra Firestore.");
                 }
-    
+
                 let hasPetTypes = false;
                 catesSnapshot.forEach(docSnapshot => {
                     const data = docSnapshot.data();
@@ -291,7 +291,7 @@
                         elements.petType.appendChild(option);
                     }
                 });
-    
+
                 if (!hasPetTypes) {
                     throw new Error("Không tìm thấy loại pet nào! Vui lòng kiểm tra trường 'name' trong Firestore.");
                 }
@@ -303,7 +303,7 @@
                 elements.petTypeLoading.style.display = "none";
             }
         }
-    
+
         // Hàm cập nhật hình ảnh pet dựa trên loại pet được chọn
         function updatePetPreview() {
             const petType = elements.petType.value.toLowerCase();
@@ -314,24 +314,24 @@
                 elements.petPreviewImage.style.display = "none";
             }
         }
-    
+
         // Hàm cập nhật màu sắc cho pet
         function updatePetColor() {
             const selectedColor = elements.petColor.value;
             if (selectedColor && COLOR_MAP[selectedColor]) {
-                elements.petPreview.style.backgroundColor = COLOR_MAP[selectedColor]; // Áp dụng màu cho nền
+                elements.petPreview.style.backgroundColor = COLOR_MAP[selectedColor];
             } else {
-                elements.petPreview.style.backgroundColor = "#ccc"; // Mặc định nếu không chọn màu
+                elements.petPreview.style.backgroundColor = "#ccc";
             }
         }
-    
+
         // Hàm kiểm tra tính hợp lệ của form
         function validateForm(petName, petType, petColor) {
             let hasError = false;
             elements.nameError.style.display = "none";
             elements.typeError.style.display = "none";
             elements.colorError.style.display = "none";
-    
+
             if (!petName) {
                 elements.nameError.style.display = "block";
                 hasError = true;
@@ -344,21 +344,20 @@
                 elements.colorError.style.display = "block";
                 hasError = true;
             }
-    
             return !hasError;
         }
-    
+
         // Hàm tạo pet
-        async function createPet() {
+        window.createPet = async function () {
             const petName = elements.petName.value.trim();
             const petType = elements.petType.value;
             const petColor = elements.petColor.value;
-    
+
             if (!validateForm(petName, petType, petColor)) return;
-    
+
             elements.createButton.disabled = true;
             elements.createLoading.style.display = "block";
-    
+
             const petData = {
                 petName,
                 petType,
@@ -373,11 +372,21 @@
                 cleanliness: 70,
                 happiness: 70,
                 lastUpdated: serverTimestamp(),
-                items: []
+                ownerId: uid
             };
-    
+
             try {
-                await setDoc(doc(db, "Users", uid), petData);
+                const petRef = doc(collection(db, "Pets"));
+                await setDoc(petRef, petData);
+
+                const userRef = doc(db, "Users", uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    await updateDoc(userRef, { currentPetId: petRef.id });
+                } else {
+                    await setDoc(userRef, { gold: 0, items: [], currentPetId: petRef.id });
+                }
+
                 alert(`${petName} vừa trào đời! Hãy chăm sóc bé nhé! 🐾`);
                 window.location.href = `game.html?uid=${uid}`;
             } catch (error) {
@@ -387,8 +396,8 @@
                 elements.createButton.disabled = false;
                 elements.createLoading.style.display = "none";
             }
-        }
-    
+        };
+
         // Kiểm tra trạng thái đăng nhập của người dùng
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -404,10 +413,10 @@
                 window.location.href = "index.html";
             }
         });
-    
-        window.createPet = createPet;
+
         window.updatePetPreview = updatePetPreview;
         window.updatePetColor = updatePetColor;
     </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92dbcc2d3a8c53ba',t:'MTc0NDIyMDUxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>

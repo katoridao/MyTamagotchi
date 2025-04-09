@@ -154,7 +154,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"; // Thêm setDoc
 
         const firebaseConfig = {
             apiKey: "AIzaSyCgd64xynT0ppg6-E1RrPx2QEFZONTaIqM",
@@ -235,7 +235,6 @@
                 elements.passwordError.style.display = "block";
                 hasError = true;
             }
-
             return !hasError;
         }
 
@@ -267,6 +266,8 @@
                     alert("Đăng nhập thành công!");
                 } else {
                     userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const userRef = doc(db, "Users", userCredential.user.uid);
+                    await setDoc(userRef, { gold: 0, items: [], currentPetId: null, email: email }); // Thêm email vào dữ liệu user
                     alert("Đăng ký thành công! Hãy tạo pet của bạn nhé!");
                 }
                 const user = userCredential.user;
@@ -303,13 +304,25 @@
         // Function to load pet data
         async function loadPet(userId) {
             try {
-                const docRef = doc(db, "Users", userId);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    const petData = docSnap.data();
-                    alert(`Chào mừng trở lại! Bé ${petData.petName} đang chờ bạn! (Level: ${petData.level})`);
-                    window.location.href = `game.html?uid=${userId}`;
+                const userRef = doc(db, "Users", userId);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    const userData = userSnap.data();
+                    if (userData.currentPetId) {
+                        const petRef = doc(db, "Pets", userData.currentPetId);
+                        const petSnap = await getDoc(petRef);
+                        if (petSnap.exists()) {
+                            const petData = petSnap.data();
+                            alert(`Chào mừng trở lại! Bé ${petData.petName} đang chờ bạn! (Level: ${petData.level})`);
+                            window.location.href = `game.html?uid=${userId}`;
+                        } else {
+                            window.location.href = `creation.html?uid=${userId}`;
+                        }
+                    } else {
+                        window.location.href = `creation.html?uid=${userId}`;
+                    }
                 } else {
+                    await setDoc(userRef, { gold: 0, items: [], currentPetId: null });
                     window.location.href = `creation.html?uid=${userId}`;
                 }
             } catch (error) {
@@ -318,5 +331,6 @@
             }
         }
     </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92dbcc2d5b37c25a',t:'MTc0NDIyMDUxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
