@@ -564,7 +564,7 @@
             Xám: "#808080",
         };
         const UPDATE_INTERVAL_SECONDS = 10;
-        const SLOW_DECAY_THRESHOLD_SECONDS = 3600;
+        const SLOW_DECAY_THRESHOLD_SECONDS = 300;
         const SLOW_DECAY_MULTIPLIER = 0.5;
         const WELCOME_BACK_THRESHOLD_SECONDS = 43200;
         const WELCOME_BACK_BOOST = 15;
@@ -831,11 +831,17 @@
                     decayMultiplier = SLOW_DECAY_MULTIPLIER;
                 }
 
-                petData.health = Math.max(petData.health - 0.5 * updatesMissed * decayMultiplier, 0);
-                petData.energy = Math.max(petData.energy - 1 * updatesMissed * decayMultiplier, 0);
-                petData.hunger = Math.max(petData.hunger - 1 * updatesMissed * decayMultiplier, 0);
-                petData.cleanliness = Math.max(petData.cleanliness - 0.5 * updatesMissed * decayMultiplier, 0);
-                petData.happiness = Math.max(petData.happiness - 0.5 * updatesMissed * decayMultiplier, 0);
+                const healthDecay = Math.min(0.5 * updatesMissed * decayMultiplier, 40);
+                const energyDecay = Math.min(1 * updatesMissed * decayMultiplier, 40);
+                const hungerDecay = Math.min(1 * updatesMissed * decayMultiplier, 40);
+                const cleanlinessDecay = Math.min(0.5 * updatesMissed * decayMultiplier, 40);
+                const happinessDecay = Math.min(0.5 * updatesMissed * decayMultiplier, 40);
+
+                petData.health = Math.max(petData.health - healthDecay, 0);
+                petData.energy = Math.max(petData.energy - energyDecay, 0);
+                petData.hunger = Math.max(petData.hunger - hungerDecay, 0);
+                petData.cleanliness = Math.max(petData.cleanliness - cleanlinessDecay, 0);
+                petData.happiness = Math.max(petData.happiness - happinessDecay, 0);
 
                 petData.lastUpdated = serverTimestamp();
                 await updatePet();
