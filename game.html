@@ -432,30 +432,12 @@
         </div>
         
         <div class="overlay" id="shop-overlay"></div>
+        <div class="overlay" id="shop-overlay"></div>
         <div class="dialog" id="shop-dialog">
             <button class="close-button" onclick="closeShop()">X</button>
             <div class="dialog-content">
                 <h3>Cửa hàng</h3>
-                <div class="shop-item">
-                    <span>Thức ăn đặc biệt (15 vàng)</span>
-                    <button onclick="buyItem('Thức ăn đặc biệt', 15)">Mua</button>
-                </div>
-                <div class="shop-item">
-                    <span>Viên uống con nhộng (10 vàng)</span>
-                    <button onclick="buyItem('Viên uống con nhộng', 10)">Mua</button>
-                </div>
-                <div class="shop-item">
-                    <span>Bánh thưởng (8 vàng)</span>
-                    <button onclick="buyItem('Bánh thưởng', 8)">Mua</button>
-                </div>
-                <div class="shop-item">
-                    <span>Vương liệm (100 vàng)</span>
-                    <button onclick="buyItem('Vương liệm', 100)">Mua</button>
-                </div>
-                <div class="shop-item">
-                    <span>Rau má (666 vàng)</span>
-                    <button onclick="buyItem('Rau má', 666)">Mua</button>
-                </div>
+                <ul id="shopItems"></ul>
             </div>
         </div>
         
@@ -564,7 +546,7 @@
             Xám: "#808080",
         };
         const UPDATE_INTERVAL_SECONDS = 10;
-        const SLOW_DECAY_THRESHOLD_SECONDS = 180;
+        const SLOW_DECAY_THRESHOLD_SECONDS = 60;
         const SLOW_DECAY_MULTIPLIER = 0.5;
         const WELCOME_BACK_THRESHOLD_SECONDS = 43200;
         const WELCOME_BACK_BOOST = 15;
@@ -649,6 +631,16 @@
                 (petName, time) => `${petName} đang ngủ ngon giấc! Còn ${time} để tỉnh táo! 💤`,
                 (petName, time) => `${petName} đang mơ mộng trong giấc ngủ! Còn ${time} nữa thôi! 🌙`,
                 (petName, time) => `${petName} đang ngáy khò khò! Còn ${time} để nghỉ ngơi! 😴`
+            ],
+            "Đọc sách": [
+                (petName, time) => `${petName} đang chăm chú đọc sách! Còn ${time} nữa nhé! 📖`,
+                (petName, time) => `${petName} đang khám phá một câu chuyện thú vị! Còn ${time} để đọc xong! 📚`,
+                (petName, time) => `${petName} đang đắm mình trong thế giới sách! Còn ${time} nữa thôi! 📘`
+            ],
+            "Trượt tuyết": [
+                (petName, time) => `${petName} đang trượt tuyết thật vui! Còn ${time} nữa nhé! 🏂`,
+                (petName, time) => `${petName} đang lướt trên dốc tuyết! Còn ${time} để tận hưởng! ❄️`,
+                (petName, time) => `${petName} đang cảm nhận gió lạnh khi trượt tuyết! Còn ${time} nữa thôi! ⛄`
             ]
         };
 
@@ -679,6 +671,8 @@
                 if (petSnap.exists()) {
                     petData = petSnap.data();
                     petData.nextLevelExp = 100 + (petData.level - 1) * 30;
+                    petData.isReading = petData.isReading || false;
+                    petData.isSkiing = petData.isSkiing || false;
                     await updateStatsBasedOnTime();
                     applyWelcomeBackBoost();
                     populateItems();
@@ -695,6 +689,29 @@
         }
 
         function populateItems() {
+            const shopItems = document.getElementById("shopItems");
+            shopItems.innerHTML = "";
+            const items = [
+                { name: "Bánh thưởng", price: 8 },
+                { name: "Viên uống con nhộng", price: 10 },
+                { name: "Thức ăn đặc biệt", price: 15 },
+                { name: "Sách", price: 20 },
+                { name: "Ván trượt tuyết", price: 25 },
+                { name: "Vương liệm", price: 100 },
+                { name: "Rau má", price: 666 },
+            ];
+
+            items.forEach(item => {
+                const li = document.createElement("li");
+                const hasItem = userData.items.includes(item.name);
+                li.className = "shop-item";
+                li.innerHTML = `
+                    <span>${item.name} (${item.price} vàng)</span>
+                    ${hasItem ? '<span class="owned">Đã mua</span>' : `<button onclick="buyItem('${item.name}', ${item.price})">Mua</button>`}
+                `;
+                shopItems.appendChild(li);
+            });
+
             elements.itemSelect.innerHTML = '<option value="">--Chọn vật phẩm--</option>';
             userData.items.forEach(item => {
                 const option = document.createElement("option");
@@ -743,7 +760,37 @@
             const petType = petData.petType.toLowerCase();
             const petImage = elements.petImage;
 
-            if (isInteracting && currentAction) {
+            if (petData.isReading) {
+                petImage.src = `img/${petType}/reading.png`;
+
+                const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+                const seconds = (timeLeft % 60).toString().padStart(2, '0');
+                const timeDisplay = `${minutes}:${seconds}`;
+                const messages = actionMessages["Đọc sách"];
+                let message;
+                if (messages && messageUpdateCounter % MESSAGE_UPDATE_INTERVAL === 0) {
+                    message = messages[Math.floor(Math.random() * messages.length)](petData.petName, timeDisplay);
+                } else {
+                    message = elements.actionStatus.textContent.replace(/\d{2}:\d{2}/, timeDisplay);
+                }
+                elements.actionStatus.textContent = message;
+                elements.actionStatus.classList.add("show");
+            } else if (petData.isSkiing) {
+                petImage.src = `img/${petType}/skiing.png`;
+
+                const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+                const seconds = (timeLeft % 60).toString().padStart(2, '0');
+                const timeDisplay = `${minutes}:${seconds}`;
+                const messages = actionMessages["Trượt tuyết"];
+                let message;
+                if (messages && messageUpdateCounter % MESSAGE_UPDATE_INTERVAL === 0) {
+                    message = messages[Math.floor(Math.random() * messages.length)](petData.petName, timeDisplay);
+                } else {
+                    message = elements.actionStatus.textContent.replace(/\d{2}:\d{2}/, timeDisplay);
+                }
+                elements.actionStatus.textContent = message;
+                elements.actionStatus.classList.add("show");
+            } else if (isInteracting && currentAction) {
                 const actionImageMap = {
                     "Chơi": "playing",
                     "Tắm rửa": "bathing",
@@ -947,6 +994,12 @@
             timeLeft = duration;
             messageUpdateCounter = 0;
 
+            if (actionName === "Đọc sách") {
+                petData.isReading = true;
+            } else if (actionName === "Trượt tuyết") {
+                petData.isSkiing = true;
+            }
+
             elements.playButton.disabled = true;
             elements.batheButton.disabled = true;
             elements.feedButton.disabled = true;
@@ -964,6 +1017,13 @@
                 if (timeLeft <= 0) {
                     clearInterval(actionTimer);
                     isInteracting = false;
+
+                    if (actionName === "Đọc sách") {
+                        petData.isReading = false;
+                    } else if (actionName === "Trượt tuyết") {
+                        petData.isSkiing = false;
+                    }
+
                     currentAction = null;
                     timeLeft = 0;
                     messageUpdateCounter = 0;
@@ -1066,6 +1126,8 @@
             const selectedItem = elements.itemSelect.value;
             if (!selectedItem) return alert("Vui lòng chọn một vật phẩm!");
 
+            if (isInteracting) return alert("Thú cưng đang bận, hãy đợi một chút!");
+
             if (selectedItem === "Thức ăn đặc biệt") {
                 petData.hunger = Math.min(petData.hunger + 40, 100);
                 petData.happiness = Math.min(petData.happiness + 10, 100);
@@ -1129,6 +1191,33 @@
                     }
                 }
                 alert(effectMessage);
+            } else if (selectedItem === "Sách") {
+                startInteraction("Đọc sách", 10, async () => {
+                    petData.happiness = Math.min(petData.happiness + 20, 100);
+                    petData.energy = Math.max(petData.energy - 5, 0);
+                    const expMultiplier = 1 + (petData.level - 1) * 0.1;
+                    petData.exp += 20 * expMultiplier;
+                    userData.gold += 5;
+                    petData.lastUpdated = serverTimestamp();
+                    await updatePet();
+                    populateItems();
+                    displayPet();
+                });
+                return;
+            } else if (selectedItem === "Ván trượt tuyết") {
+                startInteraction("Trượt tuyết", 8, async () => {
+                    petData.happiness = Math.min(petData.happiness + 25, 100);
+                    petData.energy = Math.max(petData.energy - 10, 0);
+                    petData.cleanliness = Math.max(petData.cleanliness - 5, 0);
+                    const expMultiplier = 1 + (petData.level - 1) * 0.1;
+                    petData.exp += 15 * expMultiplier;
+                    userData.gold += 8;
+                    petData.lastUpdated = serverTimestamp();
+                    await updatePet();
+                    populateItems();
+                    displayPet();
+                });
+                return;
             }
 
             userData.items = userData.items.filter(item => item !== selectedItem);
