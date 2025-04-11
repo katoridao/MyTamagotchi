@@ -878,11 +878,11 @@
                     decayMultiplier = SLOW_DECAY_MULTIPLIER;
                 }
 
-                const healthDecay = Math.min(0.5 * updatesMissed * decayMultiplier, 40);
-                const energyDecay = Math.min(1 * updatesMissed * decayMultiplier, 40);
-                const hungerDecay = Math.min(1 * updatesMissed * decayMultiplier, 40);
-                const cleanlinessDecay = Math.min(0.5 * updatesMissed * decayMultiplier, 40);
-                const happinessDecay = Math.min(0.5 * updatesMissed * decayMultiplier, 40);
+                const healthDecay = Math.min(0.5 * updatesMissed * decayMultiplier, 60);
+                const energyDecay = Math.min(1 * updatesMissed * decayMultiplier, 60);
+                const hungerDecay = Math.min(1 * updatesMissed * decayMultiplier, 60);
+                const cleanlinessDecay = Math.min(0.5 * updatesMissed * decayMultiplier, 60);
+                const happinessDecay = Math.min(0.5 * updatesMissed * decayMultiplier, 60);
 
                 petData.health = Math.max(petData.health - healthDecay, 0);
                 petData.energy = Math.max(petData.energy - energyDecay, 0);
