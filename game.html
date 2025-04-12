@@ -265,7 +265,8 @@
             background-color: #ccc;
             cursor: not-allowed;
         }
-        .delete-button {
+
+        .logout-button {
             background-color: #ff4f41;
             color: white;
             padding: 0.5rem 1rem;
@@ -273,6 +274,22 @@
             border-radius: 5px;
             cursor: pointer;
             margin-top: 0.9375rem;
+            width: 100%;
+            font-size: 0.875rem;
+        }
+
+        .logout-button:hover {
+            background-color: #e43f32;
+        }
+
+        .delete-button {
+            background-color: #ff4f41;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 0.5rem;
             width: 100%;
             font-size: 0.875rem;
         }
@@ -341,6 +358,9 @@
                 font-size: 0.75rem;
             }
             .delete-button {
+                font-size: 0.8125rem;
+            }
+            .logout-button {
                 font-size: 0.8125rem;
             }
         }
@@ -420,6 +440,9 @@
             }
             .delete-button {
                 font-size: 0.75rem;
+            }
+            .logout-button {
+                font-size: 0.8125rem;
             }
         }
     </style>
@@ -508,13 +531,14 @@
             <p><strong>Màu sắc:</strong> <span id="dialog-pet-color"></span></p>
             <p><strong>Ngày sinh:</strong> <span id="dialog-pet-birthdate"></span></p>
             <p><strong>Cấp độ:</strong> <span id="dialog-pet-level"></span></p>
+            <button class="logout-button" onclick="handleLogout()">Đăng xuất</button>
             <button class="delete-button" onclick="confirmDeletePet()">Xóa Pet</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -644,6 +668,7 @@
             ]
         };
 
+        // Function to load pet and user data from Firestore
         async function loadPet() {
             if (!uid) {
                 alert("Không tìm thấy UID người dùng!");
@@ -688,6 +713,7 @@
             }
         }
 
+        // Function to populate shop items and user inventory
         function populateItems() {
             const shopItems = document.getElementById("shopItems");
             shopItems.innerHTML = "";
@@ -720,6 +746,7 @@
             });
         }
 
+        // Function to determine and return the pet's current status message
         function getPetStatus() {
             const allStats = [petData.health, petData.energy, petData.hunger, petData.cleanliness, petData.happiness];
             if (allStats.every(stat => stat > 80)) {
@@ -735,6 +762,7 @@
             return `${petData.petName} đang cảm thấy bình thường`;
         }
 
+        // Function to update the pet's display based on its stats and actions
         function displayPet() {
             elements.petHealth.textContent = `${petData.health}/100`;
             elements.petEnergy.textContent = `${petData.energy}/100`;
@@ -842,6 +870,7 @@
             elements.petStatus.textContent = getPetStatus();
         }
 
+        // Function to apply a welcome-back boost to pet stats after a long absence
         async function applyWelcomeBackBoost() {
             if (!petData.lastUpdated) return;
 
@@ -861,6 +890,7 @@
             }
         }
 
+        // Function to update pet stats based on elapsed time since last update
         async function updateStatsBasedOnTime() {
             if (!petData.lastUpdated) {
                 petData.lastUpdated = serverTimestamp();
@@ -878,11 +908,11 @@
                     decayMultiplier = SLOW_DECAY_MULTIPLIER;
                 }
 
-                const healthDecay = Math.min(0.5 * updatesMissed * decayMultiplier, 60);
-                const energyDecay = Math.min(1 * updatesMissed * decayMultiplier, 60);
-                const hungerDecay = Math.min(1 * updatesMissed * decayMultiplier, 60);
-                const cleanlinessDecay = Math.min(0.5 * updatesMissed * decayMultiplier, 60);
-                const happinessDecay = Math.min(0.5 * updatesMissed * decayMultiplier, 60);
+                const healthDecay = Math.min(0.5 * updatesMissed * decayMultiplier, 70);
+                const energyDecay = Math.min(1 * updatesMissed * decayMultiplier, 70);
+                const hungerDecay = Math.min(1 * updatesMissed * decayMultiplier, 70);
+                const cleanlinessDecay = Math.min(0.5 * updatesMissed * decayMultiplier, 70);
+                const happinessDecay = Math.min(0.5 * updatesMissed * decayMultiplier, 70);
 
                 petData.health = Math.max(petData.health - healthDecay, 0);
                 petData.energy = Math.max(petData.energy - energyDecay, 0);
@@ -895,6 +925,7 @@
             }
         }
 
+        // Function to start periodic updates for pet stats
         function startStatUpdates() {
             updateInterval = setInterval(async () => {
             // Online decay
@@ -950,6 +981,7 @@
             }, UPDATE_INTERVAL_SECONDS * 1000);
         }
 
+        // Function to update pet and user data in Firestore
         async function updatePet() {
             try {
                 const petRef = doc(db, "Pets", petId);
@@ -969,6 +1001,7 @@
             }
         }
 
+        // Function to delete the current pet from Firestore
         async function deletePet() {
             try {
                 const petRef = doc(db, "Pets", petId);
@@ -986,6 +1019,7 @@
             }
         }
 
+        // Function to start a pet interaction with specified action and duration
         function startInteraction(actionName, duration, callback) {
             if (isInteracting) return alert(`${petData.petName} đang bận, hãy đợi một chút!`);
 
@@ -1039,6 +1073,7 @@
             }, 1000);
         }
 
+        // Function to feed the pet
         window.feedPet = async () => {
             if (petData.hunger >= 100) return alert(`${petData.petName} đã no, không thể cho ăn thêm!`);
             startInteraction("Cho ăn", 5, async () => {
@@ -1055,6 +1090,7 @@
             });
         };
 
+        // Function to play with the pet
         window.playWithPet = async () => {
             startInteraction("Chơi", 8, async () => {
                 petData.happiness = Math.min(petData.happiness + 25, 100);
@@ -1070,6 +1106,7 @@
             });
         };
 
+        // Function to bathe the pet
         window.bathePet = async () => {
             if (petData.cleanliness >= 100) return alert(`${petData.petName} đã sạch sẽ, không cần tắm thêm!`);
             startInteraction("Tắm rửa", 6, async () => {
@@ -1087,6 +1124,7 @@
             });
         };
 
+        // Function to care for the pet's health
         window.careForPet = async () => {
             if (petData.health >= 100) return alert(`${petData.petName} đã khỏe mạnh, không cần chăm sóc thêm!`);
             startInteraction("Chăm sóc", 10, async () => {
@@ -1104,6 +1142,7 @@
             });
         };
 
+        // Function to let the pet sleep
         window.sleepPet = async () => {
             if (petData.energy >= 100) return alert(`${petData.petName} đã đầy năng lượng, không cần ngủ thêm!`);
             startInteraction("Ngủ", 8, async () => {
@@ -1122,6 +1161,7 @@
             });
         };
 
+        // Function to use a selected item on the pet
         window.useItem = async () => {
             const selectedItem = elements.itemSelect.value;
             if (!selectedItem) return alert("Vui lòng chọn một vật phẩm!");
@@ -1226,16 +1266,19 @@
             displayPet();
         };
 
+        // Function to show the shop dialog
         window.showShop = () => {
             elements.shopDialog.style.display = "block";
             elements.shopOverlay.style.display = "block";
         };
 
+        // Function to close the shop dialog
         window.closeShop = () => {
             elements.shopDialog.style.display = "none";
             elements.shopOverlay.style.display = "none";
         };
 
+        // Function to buy an item from the shop
         window.buyItem = async (itemName, cost) => {
             if (userData.gold < cost) {
                 alert("Bạn không đủ vàng để mua vật phẩm này!");
@@ -1251,16 +1294,19 @@
             displayPet();
         };
 
+        // Function to show the pet info dialog
         window.showDialog = () => {
             elements.infoDialog.style.display = "block";
             elements.overlay.style.display = "block";
         };
 
+        // Function to close the pet info dialog
         window.closeDialog = () => {
             elements.infoDialog.style.display = "none";
             elements.overlay.style.display = "none";
         };
 
+        // Function to confirm pet deletion
         window.confirmDeletePet = () => {
             if (window.confirm(`Bạn có chắc chắn muốn gửi ${petData.petName} vào trung tâm? Hành động này không thể hoàn tác!`)) {
                 deletePet();
@@ -1273,6 +1319,21 @@
             if (updateInterval) clearInterval(updateInterval);
         });
 
+        // Function to handle user logout
+        window.handleLogout = async function () {
+            if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+                try {
+                    await signOut(auth);
+                    localStorage.removeItem("tamagotchiCredentials");
+                    alert("Đăng xuất thành công!");
+                    window.location.href = "index.html";
+                } catch (error) {
+                    console.error("Lỗi đăng xuất:", error);
+                    alert("Lỗi đăng xuất: " + error.message);
+                }
+            }
+        };
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 if (uid && uid === user.uid) {
@@ -1282,7 +1343,6 @@
                     window.location.href = "index.html";
                 }
             } else {
-                alert("Vui lòng đăng nhập để xem pet!");
                 window.location.href = "index.html";
             }
         });

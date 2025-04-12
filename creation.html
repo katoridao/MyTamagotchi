@@ -269,7 +269,7 @@
             createLoading: document.getElementById("create-loading"),
         };
 
-        // Hàm tải danh sách loại pet từ Firestore
+        // Function to load pet types from Firestore
         async function loadPetTypes() {
             elements.petType.innerHTML = '<option value="">--Chọn loại pet--</option>';
             elements.petTypeError.style.display = "none";
@@ -304,7 +304,7 @@
             }
         }
 
-        // Hàm cập nhật hình ảnh pet dựa trên loại pet được chọn
+        // Function to update the pet preview image based on the selected pet type
         function updatePetPreview() {
             const petType = elements.petType.value.toLowerCase();
             if (petType) {
@@ -315,7 +315,7 @@
             }
         }
 
-        // Hàm cập nhật màu sắc cho pet
+        // Function to update the pet's color preview
         function updatePetColor() {
             const selectedColor = elements.petColor.value;
             if (selectedColor && COLOR_MAP[selectedColor]) {
@@ -325,7 +325,7 @@
             }
         }
 
-        // Hàm kiểm tra tính hợp lệ của form
+        // Function to validate the pet creation form
         function validateForm(petName, petType, petColor) {
             let hasError = false;
             elements.nameError.style.display = "none";
@@ -347,7 +347,7 @@
             return !hasError;
         }
 
-        // Hàm tạo pet
+        // Function to create a new pet
         window.createPet = async function () {
             const petName = elements.petName.value.trim();
             const petType = elements.petType.value;
@@ -398,7 +398,6 @@
             }
         };
 
-        // Kiểm tra trạng thái đăng nhập của người dùng
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 if (uid && uid === user.uid) {
