@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Tamagotchi</title>
+    <link rel="stylesheet" href="../css/creation.css">
+  </head>
+  <body>
+    <div class="creation-container">
+      <h2>Tạo Pet Của Bạn</h2>
+      <div class="pet-preview">
+        <img id="pet-preview-image" src="" alt="Pet Preview" />
+      </div>
+      <div class="form-group">
+        <label for="pet-name">Tên Pet:</label>
+        <input type="text" id="pet-name" placeholder="Nhập tên pet" />
+        <div class="error" id="name-error">Vui lòng nhập tên pet!</div>
+      </div>
+      <div class="form-group">
+        <label for="pet-type">Loại Pet:</label>
+        <select id="pet-type" onchange="updatePetPreview()">
+          <option value="">--Chọn loại pet--</option>
+        </select>
+        <div class="error" id="type-error">Vui lòng chọn loại pet!</div>
+        <div class="error" id="pet-type-error"></div>
+        <div class="loading-message" id="pet-type-loading">
+          Đang tải danh sách loại pet...
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="pet-color">Màu Sắc:</label>
+        <select id="pet-color" onchange="updatePetColor()">
+          <option value="">--Chọn màu sắc--</option>
+          <option value="Đỏ">Đỏ</option>
+          <option value="Lục">Lục</option>
+          <option value="Xanh">Xanh</option>
+          <option value="Vàng">Vàng</option>
+          <option value="Hồng">Hồng</option>
+          <option value="Lam">Lam</option>
+          <option value="Tím">Tím</option>
+          <option value="Cam">Cam</option>
+          <option value="Nâu">Nâu</option>
+          <option value="Đen">Đen</option>
+          <option value="Xám">Xám</option>
+        </select>
+        <div class="error" id="color-error">Vui lòng chọn màu sắc!</div>
+      </div>
+      <button id="create-pet-button" onclick="createPet()">Tạo Pet</button>
+      <div class="loading-message" id="create-loading">Đang tạo pet...</div>
+    </div>
+
+    <script type="module" src="../scripts/creation.js"></script>
+    <script>
+      (function () {
+        function c() {
+          var b = a.contentDocument || a.contentWindow.document;
+          if (b) {
+            var d = b.createElement("script");
+            d.innerHTML =
+              "window.__CF$cv$params={r:'92dbcc2d3a8c53ba',t:'MTc0NDIyMDUxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+            b.getElementsByTagName("head")[0].appendChild(d);
+          }
+        }
+        if (document.body) {
+          var a = document.createElement("iframe");
+          a.height = 1;
+          a.width = 1;
+          a.style.position = "absolute";
+          a.style.top = 0;
+          a.style.left = 0;
+          a.style.border = "none";
+          a.style.visibility = "hidden";
+          document.body.appendChild(a);
+          if ("loading" !== document.readyState) c();
+          else if (window.addEventListener)
+            document.addEventListener("DOMContentLoaded", c);
+          else {
+            var e = document.onreadystatechange || function () {};
+            document.onreadystatechange = function (b) {
+              e(b);
+              "loading" !== document.readyState &&
+                ((document.onreadystatechange = e), c());
+            };
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>
+    <script>
+      (function () {
+        function c() {
+          var b = a.contentDocument || a.contentWindow.document;
+          if (b) {
+            var d = b.createElement("script");
+            d.innerHTML =
+              "window.__CF$cv$params={r:'92dbcc2d3a8c53ba',t:'MTc0NDIyMDUxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+            b.getElementsByTagName("head")[0].appendChild(d);
+          }
+        }
+        if (document.body) {
+          var a = document.createElement("iframe");
+          a.height = 1;
+          a.width = 1;
+          a.style.position = "absolute";
+          a.style.top = 0;
+          a.style.left = 0;
+          a.style.border = "none";
+          a.style.visibility = "hidden";
+          document.body.appendChild(a);
+          if ("loading" !== document.readyState) c();
+          else if (window.addEventListener)
+            document.addEventListener("DOMContentLoaded", c);
+          else {
+            var e = document.onreadystatechange || function () {};
+            document.onreadystatechange = function (b) {
+              e(b);
+              "loading" !== document.readyState &&
+                ((document.onreadystatechange = e), c());
+            };
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>

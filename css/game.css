@@ -1,0 +1,438 @@
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0e4ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .game-container {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+            margin: 1rem;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .pet-display {
+            width: 11rem;
+            height: 11rem;
+            margin: 0 auto 0.625rem;
+            border: 2px solid #ccc;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #fff;
+            cursor: pointer;
+        }
+        .pet-display img {
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+            object-fit: contain;
+        }
+        .pet-display.jumping {
+            animation: jump 1s infinite;
+        }
+        .pet-display.sad {
+            animation: sad 1s infinite;
+        }
+        .pet-display.shaking {
+            animation: shake 0.5s infinite;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-0.3125rem); }
+            75% { transform: translateX(0.3125rem); }
+        }
+
+        .pet-display.fading {
+            animation: fade 1s infinite;
+        }
+        @keyframes fade {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-1.25rem); }
+        }
+        @keyframes sad {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(0.3125rem); }
+        }
+        .pet-status {
+            font-size: 1rem;
+            color: #ff6f61;
+            margin: 0.625rem 0 1.25rem;
+            font-weight: bold;
+        }
+        .action-status {
+            color: #ff6f61;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 0.3125rem;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .action-status.show {
+            display: block;
+            opacity: 1;
+        }
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0.5rem 0;
+        }
+        .shop-item span {
+            font-size: 0.875rem;
+        }
+        .shop-item button {
+            padding: 0.3125rem 0.625rem;
+            font-size: 0.75rem;
+        }
+        .gold-display {
+            position: absolute;
+            top: 0.625rem;
+            left: 0.625rem;
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #ff6f61;
+        }
+        .gold-icon {
+            font-size: 1.5rem;
+            margin-right: 0.3125rem;
+            cursor: pointer;
+        }
+        .info-button {
+            position: absolute;
+            top: 0.625rem;
+            right: 0.625rem;
+            background-color: #ff6f61;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 2.5rem;
+            height: 2.5rem;
+            cursor: pointer;
+            font-size: 1.25rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s ease, background-color 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .info-button:hover {
+            background-color: #ff4f41;
+            transform: scale(1.1);
+        }
+        .dialog {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 1.25rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            width: 90%;
+            max-width: 300px;
+        }
+        .dialog-content {
+            text-align: left;
+        }
+        .dialog-content p {
+            margin: 0.3125rem 0;
+            font-size: 0.875rem;
+        }
+        .close-button {
+            position: absolute;
+            top: 0.625rem;
+            right: 0.625rem;
+            background-color: #ff6f61;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.3125rem 0.625rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        .close-button:hover {
+            background-color: #ff4f41;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .stats {
+            margin: 1.25rem 0;
+            text-align: left;
+            padding: 0 1.25rem;
+        }
+        .stat-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.9375rem;
+        }
+        .stat-label {
+            width: 2.5rem;
+            font-size: 1.25rem;
+            text-align: center;
+            color: #333;
+            cursor: pointer;
+        }
+        .progress-container {
+            width: 100%;
+            max-width: 18.75rem;
+            height: 0.9375rem;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-right: 0.9375rem;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #ff6f61;
+            transition: width 0.3s ease;
+        }
+        .stat-value {
+            width: 4.375rem;
+            text-align: right;
+            font-size: 0.875rem;
+            color: #555;
+        }
+        .actions {
+            display: flex;
+            justify-content: space-around;
+            margin: 1.25rem 0;
+            flex-wrap: wrap;
+            gap: 0.625rem;
+        }
+        .items {
+            margin: 1.25rem 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.625rem;
+        }
+        select {
+            padding: 0.3125rem;
+            border-radius: 5px;
+            width: 9.375rem;
+            font-size: 0.875rem;
+        }
+        button {
+            background-color: #ff6f61;
+            color: white;
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background-color 0.3s ease;
+        }
+        button:hover:not(:disabled) {
+            background-color: #ff4f41;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .logout-button {
+            background-color: #ff4f41;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 0.9375rem;
+            width: 100%;
+            font-size: 0.875rem;
+        }
+
+        .logout-button:hover {
+            background-color: #e43f32;
+        }
+
+        .delete-button {
+            background-color: #ff4f41;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            width: 100%;
+            font-size: 0.875rem;
+        }
+        .delete-button:hover {
+            background-color: #e43f32;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                max-width: 90%;
+                padding: 1.5rem;
+            }
+            .gold-display {
+                font-size: 0.9375rem;
+            }
+            .gold-icon {
+                font-size: 1.25rem;
+            }
+            .pet-display {
+                width: 10rem;
+                height: 10rem;
+            }
+            .pet-status, .action-status {
+                font-size: 0.9375rem;
+            }
+            .info-button {
+                width: 2rem;
+                height: 2rem;
+                font-size: 1rem;
+            }
+            .stats {
+                padding: 0 0.9375rem;
+            }
+            .stat-label {
+                width: 2rem;
+                font-size: 1rem;
+            }
+            .progress-container {
+                max-width: 100%;
+                height: 0.75rem;
+            }
+            .stat-value {
+                width: 3.75rem;
+                font-size: 0.8125rem;
+            }
+            .actions {
+                gap: 0.5rem;
+            }
+            button {
+                padding: 0.5rem 1rem;
+                font-size: 0.8125rem;
+            }
+            select {
+                width: 8rem;
+                font-size: 0.8125rem;
+            }
+            .dialog {
+                padding: 1rem;
+            }
+            .dialog-content p {
+                font-size: 0.8125rem;
+            }
+            .close-button {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            .delete-button {
+                font-size: 0.8125rem;
+            }
+            .logout-button {
+                font-size: 0.8125rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0.5rem;
+            }
+            .game-container {
+                max-width: 100%;
+                padding: 1rem;
+                margin: 0.5rem;
+            }
+            .gold-display {
+                font-size: 0.875rem;
+            }
+            .gold-icon {
+                font-size: 1rem;
+            }
+            .pet-display {
+                width: 8rem;
+                height: 8rem;
+            }
+            .pet-status, .action-status {
+                font-size: 0.875rem;
+            }
+            .info-button {
+                width: 1.75rem;
+                height: 1.75rem;
+                font-size: 0.875rem;
+            }
+            .stats {
+                padding: 0 0.625rem;
+            }
+            .stat-label {
+                width: 1.75rem;
+                font-size: 0.875rem;
+            }
+            .progress-container {
+                max-width: 100%;
+                height: 0.625rem;
+            }
+            .stat-value {
+                width: 3.125rem;
+                font-size: 0.75rem;
+            }
+            .actions {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .actions button {
+                width: 100%;
+                padding: 0.75rem;
+            }
+            .items {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            select {
+                width: 100%;
+                font-size: 0.875rem;
+            }
+            button {
+                padding: 0.75rem;
+                font-size: 0.875rem;
+            }
+            .dialog {
+                padding: 0.75rem;
+            }
+            .dialog-content p {
+                font-size: 0.75rem;
+            }
+            .close-button {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.625rem;
+            }
+            .delete-button {
+                font-size: 0.75rem;
+            }
+            .logout-button {
+                font-size: 0.8125rem;
+            }
+        }

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tamagotchi</title>
+    <link rel="stylesheet" href="../css/game.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="gold-display">
+            <span class="gold-icon" onclick="showShop()">🛒</span>
+            <span id="gold-amount">0 </span>
+        </div>
+        
+        <div class="overlay" id="shop-overlay"></div>
+        <div class="overlay" id="shop-overlay"></div>
+        <div class="dialog" id="shop-dialog">
+            <button class="close-button" onclick="closeShop()">X</button>
+            <div class="dialog-content">
+                <h3>Cửa hàng</h3>
+                <ul id="shopItems"></ul>
+            </div>
+        </div>
+        
+        <div class="pet-display" id="pet-display">
+            <img id="pet-image" src="" alt="Pet Image" />
+        </div>
+        <div class="pet-status" id="pet-status"></div>
+        <div class="action-status" id="action-status"></div>
+        <button class="info-button" onclick="showDialog()">i</button>
+        <div class="stats">
+            <div class="stat-bar">
+                <span class="stat-label">❤️</span>
+                <div class="progress-container">
+                    <div class="progress-bar" id="health-bar" style="width: 100%;"></div>
+                </div>
+                <span class="stat-value" id="pet-health">100/100</span>
+            </div>
+            <div class="stat-bar">
+                <span class="stat-label">⚡</span>
+                <div class="progress-container">
+                    <div class="progress-bar" id="energy-bar" style="width: 100%;"></div>
+                </div>
+                <span class="stat-value" id="pet-energy">100/100</span>
+            </div>
+            <div class="stat-bar">
+                <span class="stat-label">🍽️</span>
+                <div class="progress-container">
+                    <div class="progress-bar" id="hunger-bar" style="width: 50%;"></div>
+                </div>
+                <span class="stat-value" id="pet-hunger">50/100</span>
+            </div>
+            <div class="stat-bar">
+                <span class="stat-label">🛁</span>
+                <div class="progress-container">
+                    <div class="progress-bar" id="cleanliness-bar" style="width: 100%;"></div>
+                </div>
+                <span class="stat-value" id="pet-cleanliness">100/100</span>
+            </div>
+            <div class="stat-bar">
+                <span class="stat-label">😊</span>
+                <div class="progress-container">
+                    <div class="progress-bar" id="happiness-bar" style="width: 30%;"></div>
+                </div>
+                <span class="stat-value" id="pet-happiness">30/100</span>
+            </div>
+        </div>
+        <div class="actions">
+            <button id="play-button" onclick="playWithPet()">Chơi</button>
+            <button id="bathe-button" onclick="bathePet()">Tắm rửa</button>
+            <button id="feed-button" onclick="feedPet()">Cho ăn</button>
+            <button id="care-button" onclick="careForPet()">Chăm sóc</button>
+            <button id="sleep-button" onclick="sleepPet()">Ngủ</button>
+        </div>
+        <div class="items">
+            <select id="item-select">
+                <option value="">--Chọn vật phẩm--</option>
+            </select>
+            <button onclick="useItem()">Dùng vật phẩm</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="dialog" id="info-dialog">
+        <button class="close-button" onclick="closeDialog()">X</button>
+        <div class="dialog-content">
+            <p><strong>Tên:</strong> <span id="dialog-pet-name"></span></p>
+            <p><strong>Loài:</strong> <span id="dialog-pet-type"></span></p>
+            <p><strong>Màu sắc:</strong> <span id="dialog-pet-color"></span></p>
+            <p><strong>Ngày sinh:</strong> <span id="dialog-pet-birthdate"></span></p>
+            <p><strong>Cấp độ:</strong> <span id="dialog-pet-level"></span></p>
+            <button class="logout-button" onclick="handleLogout()">Đăng xuất</button>
+            <button class="delete-button" onclick="confirmDeletePet()">Xóa Pet</button>
+        </div>
+    </div>
+
+    <script type="module" src="../scripts/game.js"></script>
+</body>
+</html>
+</body>
+</html>
