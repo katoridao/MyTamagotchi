@@ -28,8 +28,8 @@
             position: relative;
         }
         .pet-display {
-            width: 12.5rem;
-            height: 12.5rem;
+            width: 11rem;
+            height: 11rem;
             margin: 0 auto 0.625rem;
             border: 2px solid #ccc;
             border-radius: 15px;
@@ -297,7 +297,6 @@
             background-color: #e43f32;
         }
 
-        /* Tablet (max-width: 768px) */
         @media (max-width: 768px) {
             .game-container {
                 max-width: 90%;
@@ -365,7 +364,6 @@
             }
         }
 
-        /* Mobile (max-width: 480px) */
         @media (max-width: 480px) {
             body {
                 padding: 0.5rem;
@@ -527,7 +525,7 @@
         <button class="close-button" onclick="closeDialog()">X</button>
         <div class="dialog-content">
             <p><strong>Tên:</strong> <span id="dialog-pet-name"></span></p>
-            <p><strong>Loại:</strong> <span id="dialog-pet-type"></span></p>
+            <p><strong>Loài:</strong> <span id="dialog-pet-type"></span></p>
             <p><strong>Màu sắc:</strong> <span id="dialog-pet-color"></span></p>
             <p><strong>Ngày sinh:</strong> <span id="dialog-pet-birthdate"></span></p>
             <p><strong>Cấp độ:</strong> <span id="dialog-pet-level"></span></p>
@@ -539,7 +537,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, deleteDoc, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCgd64xynT0ppg6-E1RrPx2QEFZONTaIqM",
@@ -632,39 +630,39 @@
 
         const actionMessages = {
             "Chơi": [
-                (petName, time) => `${petName} đang vui vẻ chơi đùa! Còn ${time} nữa nhé! 🎉`,
-                (petName, time) => `${petName} đang chạy nhảy khắp nơi! Còn ${time} để vui hết mình! 🏃`,
-                (petName, time) => `${petName} đang chơi trò đuổi bắt! Còn ${time} nữa thôi! 💨`
+                (petName, time) => `${petName} đang vui vẻ chơi đùa! Còn ${time}`,
+                (petName, time) => `${petName} đang chạy nhảy khắp nơi! Còn ${time}`,
+                (petName, time) => `${petName} đang chơi trò đuổi bắt! Còn ${time}`
             ],
             "Tắm rửa": [
-                (petName, time) => `${petName} đang thư giãn trong bồn tắm! Còn ${time} nữa thôi! 🛁`,
-                (petName, time) => `${petName} đang nghịch nước tung tóe! Còn ${time} để sạch sẽ! 💦`,
-                (petName, time) => `${petName} đang thích thú với bọt xà phòng! Còn ${time} nữa nhé! 🧼`
+                (petName, time) => `${petName} đang thư giãn trong bồn tắm! Còn ${time}`,
+                (petName, time) => `${petName} đang nghịch nước tung tóe! Còn ${time}`,
+                (petName, time) => `${petName} đang thích thú với bọt xà phòng! Còn ${time}`
             ],
             "Cho ăn": [
-                (petName, time) => `${petName} đang ăn ngon lành! Còn ${time} để no bụng! 🍽️`,
-                (petName, time) => `${petName} đang nhai nhóp nhép! Còn ${time} nữa thôi! 🥄`,
-                (petName, time) => `${petName} đang thưởng thức bữa ăn! Còn ${time} để no nê! 🍴`
+                (petName, time) => `${petName} đang ăn ngon lành! Còn ${time}`,
+                (petName, time) => `${petName} đang nhai nhóp nhép! Còn ${time}`,
+                (petName, time) => `${petName} đang thưởng thức bữa ăn! Còn ${time}`
             ],
             "Chăm sóc": [
-                (petName, time) => `${petName} đang được chăm sóc cẩn thận! Còn ${time} nữa thôi! ❤️`,
-                (petName, time) => `${petName} đang cảm nhận sự yêu thương! Còn ${time} để khỏe mạnh! 💖`,
-                (petName, time) => `${petName} đang được vuốt ve nhẹ nhàng! Còn ${time} nữa nhé! 🐾`
+                (petName, time) => `${petName} đang được chăm sóc cẩn thận! Còn ${time}`,
+                (petName, time) => `${petName} đang cảm nhận sự yêu thương! Còn ${time}`,
+                (petName, time) => `${petName} đang được vuốt ve nhẹ nhàng! Còn ${time}`
             ],
             "Ngủ": [
-                (petName, time) => `${petName} đang ngủ ngon giấc! Còn ${time} để tỉnh táo! 💤`,
-                (petName, time) => `${petName} đang mơ mộng trong giấc ngủ! Còn ${time} nữa thôi! 🌙`,
-                (petName, time) => `${petName} đang ngáy khò khò! Còn ${time} để nghỉ ngơi! 😴`
+                (petName, time) => `${petName} đang ngủ ngon giấc! Còn ${time}`,
+                (petName, time) => `${petName} đang mơ mộng trong giấc ngủ! Còn ${time}`,
+                (petName, time) => `${petName} đang ngáy khò khò! Còn ${time}`
             ],
             "Đọc sách": [
-                (petName, time) => `${petName} đang chăm chú đọc sách! Còn ${time} nữa nhé! 📖`,
-                (petName, time) => `${petName} đang khám phá một câu chuyện thú vị! Còn ${time} để đọc xong! 📚`,
-                (petName, time) => `${petName} đang đắm mình trong thế giới sách! Còn ${time} nữa thôi! 📘`
+                (petName, time) => `${petName} đang chăm chú đọc sách! Còn ${time}`,
+                (petName, time) => `${petName} đang khám phá một câu chuyện thú vị! Còn ${time}`,
+                (petName, time) => `${petName} đang đắm mình trong thế giới sách! Còn ${time}`
             ],
             "Trượt tuyết": [
-                (petName, time) => `${petName} đang trượt tuyết thật vui! Còn ${time} nữa nhé! 🏂`,
-                (petName, time) => `${petName} đang lướt trên dốc tuyết! Còn ${time} để tận hưởng! ❄️`,
-                (petName, time) => `${petName} đang cảm nhận gió lạnh khi trượt tuyết! Còn ${time} nữa thôi! ⛄`
+                (petName, time) => `${petName} đang trượt tuyết thật vui! Còn ${time}`,
+                (petName, time) => `${petName} đang lướt trên dốc tuyết! Còn ${time}`,
+                (petName, time) => `${petName} đang cảm nhận gió lạnh khi trượt tuyết! Còn ${time}`
             ]
         };
 
@@ -750,14 +748,14 @@
         function getPetStatus() {
             const allStats = [petData.health, petData.energy, petData.hunger, petData.cleanliness, petData.happiness];
             if (allStats.every(stat => stat > 80)) {
-                return `${petData.petName} đang cảm thấy Tuyệt vời! 🎉`;
+                return `${petData.petName} đang cảm thấy tuyệt vời!`;
             }
 
-            if (petData.health < 30) return `${petData.petName} đang Ốm yếu 🤒`;
-            if (petData.energy < 30) return `${petData.petName} đang Ngái ngủ 💤`;
-            if (petData.hunger < 30) return `${petData.petName} đang Đói 🍽️`;
-            if (petData.cleanliness < 30) return `${petData.petName} đang Bẩn 🐾`;
-            if (petData.happiness < 30) return `${petData.petName} đang Buồn 😢`;
+            if (petData.health < 30) return `${petData.petName} đang ốm yếu`;
+            if (petData.energy < 30) return `${petData.petName} đang ngái ngủ`;
+            if (petData.hunger < 30) return `${petData.petName} đang đói`;
+            if (petData.cleanliness < 30) return `${petData.petName} đang bẩn`;
+            if (petData.happiness < 30) return `${petData.petName} đang buồn`;
 
             return `${petData.petName} đang cảm thấy bình thường`;
         }
@@ -935,6 +933,27 @@
             petData.cleanliness = Math.max(petData.cleanliness - 0.5, 0);
             petData.happiness = Math.max(petData.happiness - 1, 0);
 
+            // Check if pet is dead
+            if (petData.health <= 0) {
+                clearInterval(updateInterval);
+                const petType = petData.petType.toLowerCase();
+                elements.petImage.src = `img/${petType}/leave.png`;
+                elements.petDisplay.classList.remove("jumping", "sad", "shaking", "fading");
+                elements.petStatus.textContent = "";
+                elements.actionStatus.classList.remove("show");
+                elements.playButton.disabled = true;
+                elements.batheButton.disabled = true;
+                elements.feedButton.disabled = true;
+                elements.careButton.disabled = true;
+                elements.sleepButton.disabled = true;
+                
+                setTimeout(async () => {
+                    alert(`Bạn đã không chăm sóc ${petData.petName} thật chu đáo, ${petData.petName} đã rất buồn và quyết định rời đi...`);
+                    await deletePet();
+                }, 500);
+                return;
+            }
+
             // Additional health penalty
             const lowStats = [petData.energy, petData.hunger, petData.cleanliness, petData.happiness].filter(stat => stat < 30).length;
             if (lowStats > 0) {
@@ -1002,16 +1021,20 @@
         }
 
         // Function to delete the current pet from Firestore
-        async function deletePet() {
+        async function deletePet(isAlreadyShown = false) {
             try {
                 const petRef = doc(db, "Pets", petId);
                 await deleteDoc(petRef);
 
                 const userRef = doc(db, "Users", uid);
-                await updateDoc(userRef, { currentPetId: null });
+                userData.gold = 0;
+                userData.items = [];
+                await updateDoc(userRef, { currentPetId: null, gold: 0, items: [] });
 
                 console.log("Pet deleted successfully!");
-                alert(`${petData.petName} đã được gửi vào trung tâm!`);
+                if (!isAlreadyShown) {
+                    alert(`${petData.petName} đã được gửi vào trung tâm!`);
+                }
                 window.location.href = `creation.html?uid=${uid}`;
             } catch (error) {
                 console.error("Lỗi khi xóa pet:", error);
@@ -1077,10 +1100,17 @@
         window.feedPet = async () => {
             if (petData.hunger >= 100) return alert(`${petData.petName} đã no, không thể cho ăn thêm!`);
             startInteraction("Cho ăn", 5, async () => {
-                petData.hunger = Math.min(petData.hunger + 30, 100);
+                petData.hunger = Math.min(petData.hunger + 20, 100);
                 petData.happiness = Math.min(petData.happiness + 10, 100);
-                petData.energy = Math.max(petData.energy - 3, 0);
-                petData.cleanliness = Math.max(petData.cleanliness - 1, 0);
+                petData.energy = Math.max(petData.energy - 10, 0);
+                
+                // Pet-specific cleanliness changes
+                if (petData.petType.toLowerCase() === "heo") {
+                    petData.cleanliness = Math.max(petData.cleanliness - 20, 0);
+                } else {
+                    petData.cleanliness = Math.max(petData.cleanliness - 10, 0);
+                }
+                
                 const expMultiplier = 1 + (petData.level - 1) * 0.1;
                 petData.exp += 15 * expMultiplier;
                 userData.gold += 5;
@@ -1094,9 +1124,18 @@
         window.playWithPet = async () => {
             startInteraction("Chơi", 8, async () => {
                 petData.happiness = Math.min(petData.happiness + 25, 100);
-                petData.energy = Math.max(petData.energy - 5, 0);
-                petData.hunger = Math.max(petData.hunger - 2, 0);
-                petData.cleanliness = Math.max(petData.cleanliness - 3, 0);
+                
+                // Pet-specific energy and hunger changes
+                if (petData.petType.toLowerCase() === "chó") {
+                    // Dog uses more energy and hunger when playing
+                    petData.energy = Math.max(petData.energy - 30, 0);
+                    petData.hunger = Math.max(petData.hunger - 20, 0);
+                } else {
+                    petData.energy = Math.max(petData.energy - 15, 0);
+                    petData.hunger = Math.max(petData.hunger - 10, 0);
+                }
+                
+                petData.cleanliness = Math.max(petData.cleanliness - 15, 0);
                 const expMultiplier = 1 + (petData.level - 1) * 0.1;
                 petData.exp += 20 * expMultiplier;
                 userData.gold += 8;
@@ -1111,10 +1150,18 @@
             if (petData.cleanliness >= 100) return alert(`${petData.petName} đã sạch sẽ, không cần tắm thêm!`);
             startInteraction("Tắm rửa", 6, async () => {
                 const wasDirty = petData.cleanliness < 30;
-                petData.cleanliness = Math.min(petData.cleanliness + 30, 100);
+                
+                // Pet-specific cleanliness increase
+                if (petData.petType.toLowerCase() === "mèo") {
+                    // Cat gains less cleanliness when bathing
+                    petData.cleanliness = Math.min(petData.cleanliness + 10, 100);
+                } else {
+                    petData.cleanliness = Math.min(petData.cleanliness + 30, 100);
+                }
+                
                 petData.happiness = Math.min(petData.happiness + 15, 100);
                 if (wasDirty) petData.happiness = Math.min(petData.happiness + 10, 100);
-                petData.energy = Math.max(petData.energy - 3, 0);
+                petData.energy = Math.max(petData.energy - 10, 0);
                 const expMultiplier = 1 + (petData.level - 1) * 0.1;
                 petData.exp += 15 * expMultiplier;
                 userData.gold += 6;
@@ -1132,7 +1179,7 @@
                 petData.health = Math.min(petData.health + 25, 100);
                 petData.happiness = Math.min(petData.happiness + 15, 100);
                 if (wasSick) petData.happiness = Math.min(petData.happiness + 10, 100);
-                petData.energy = Math.max(petData.energy - 3, 0);
+                petData.energy = Math.max(petData.energy - 10, 0);
                 const expMultiplier = 1 + (petData.level - 1) * 0.1;
                 petData.exp += 25 * expMultiplier;
                 userData.gold += 6;
@@ -1148,9 +1195,9 @@
             startInteraction("Ngủ", 8, async () => {
                 const wasAsleep = petData.energy < 30;
                 petData.energy = Math.min(petData.energy + 40, 100);
-                petData.hunger = Math.max(petData.hunger - 3, 0);
-                petData.happiness = Math.min(petData.happiness + 5, 100);
-                petData.cleanliness = Math.max(petData.cleanliness - 2, 0);
+                petData.hunger = Math.max(petData.hunger - 10, 0);
+                petData.happiness = Math.min(petData.happiness + 10, 100);
+                petData.cleanliness = Math.max(petData.cleanliness - 10, 0);
                 if (wasAsleep) petData.happiness = Math.min(petData.happiness + 10, 100);
                 const expMultiplier = 1 + (petData.level - 1) * 0.1;
                 petData.exp += 15 * expMultiplier;
@@ -1171,17 +1218,17 @@
             if (selectedItem === "Thức ăn đặc biệt") {
                 petData.hunger = Math.min(petData.hunger + 40, 100);
                 petData.happiness = Math.min(petData.happiness + 10, 100);
-                petData.energy = Math.min(petData.energy + 5, 100);
+                petData.energy = Math.min(petData.energy + 10, 100);
                 alert(`${petData.petName} đã dùng Thức ăn đặc biệt! Hunger +40, Happiness +10, Energy +5`);
             } else if (selectedItem === "Viên uống con nhộng") {
                 petData.health = Math.min(petData.health + 30, 100);
                 petData.energy = Math.min(petData.energy + 10, 100);
-                petData.happiness = Math.min(petData.happiness + 5, 100);
+                petData.happiness = Math.min(petData.happiness + 10, 100);
                 alert(`${petData.petName} đã dùng Viên uống con nhộng! Health +30, Energy +10, Happiness +5`);
             } else if (selectedItem === "Bánh thưởng") {
                 petData.happiness = Math.min(petData.happiness + 20, 100);
                 petData.hunger = Math.min(petData.hunger + 15, 100);
-                petData.energy = Math.max(petData.energy - 5, 0);
+                petData.energy = Math.max(petData.energy - 10, 0);
                 alert(`${petData.petName} đã dùng Bánh thưởng! Happiness +20, Hunger +15, Energy -5`);
             } else if (selectedItem === "Vương liệm") {
                 const stats = ["hunger", "cleanliness", "health", "energy", "happiness"];
@@ -1309,7 +1356,7 @@
         // Function to confirm pet deletion
         window.confirmDeletePet = () => {
             if (window.confirm(`Bạn có chắc chắn muốn gửi ${petData.petName} vào trung tâm? Hành động này không thể hoàn tác!`)) {
-                deletePet();
+                deletePet(false);
             } else {
                 closeDialog();
             }
@@ -1325,7 +1372,6 @@
                 try {
                     await signOut(auth);
                     localStorage.removeItem("tamagotchiCredentials");
-                    alert("Đăng xuất thành công!");
                     window.location.href = "index.html";
                 } catch (error) {
                     console.error("Lỗi đăng xuất:", error);

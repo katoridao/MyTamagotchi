@@ -1,460 +1,623 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Tamagotchi</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0e4ff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-        }
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0e4ff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        background-color: #fff;
+        padding: 3rem;
+        border-radius: 15px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        width: 100%;
+        max-width: 500px;
+        margin: 2rem;
+        box-sizing: border-box;
+      }
+      h2 {
+        color: #ff6f61;
+        font-size: 1.5rem;
+        margin-bottom: 1.25rem;
+      }
+      input {
+        width: 100%;
+        padding: 0.625rem;
+        margin: 0.625rem 0;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        box-sizing: border-box;
+        font-size: 1rem;
+      }
+      .password-input-container {
+        position: relative;
+        width: 100%;
+      }
+      .password-input-container input {
+        padding-right: 2.5rem;
+      }
+      .toggle-password {
+        position: absolute;
+        right: 0.625rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #ff6f61;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        width: auto;
+        margin: 0;
+        transition: color 0.3s ease;
+        font-weight: bold;
+      }
+      .toggle-password:hover {
+        color: #ff4f41;
+        background-color: transparent;
+      }
+      button {
+        background-color: #ff6f61;
+        color: white;
+        padding: 0.625rem 1.25rem;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 0.3125rem 0;
+        width: 100%;
+        font-size: 1rem;
+        transition: background-color 0.3s ease;
+      }
+      button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+      .toggle-form {
+        color: #ff6f61;
+        cursor: pointer;
+        text-decoration: underline;
+        margin: 0.625rem 0;
+        font-size: 0.875rem;
+      }
+      .toggle-form:hover {
+        color: #ff4f41;
+      }
+      .error,
+      .loading-message {
+        font-size: 0.875rem;
+        margin-top: 0.3125rem;
+        display: none;
+      }
+      .error {
+        color: red;
+      }
+      .loading-message {
+        color: #555;
+      }
+
+      .checkbox-container {
+        display: flex;
+        align-items: center;
+        margin: 0.625rem 0;
+        text-align: left;
+      }
+      .checkbox-container input[type="checkbox"] {
+        display: none;
+      }
+      .checkbox-container label {
+        position: relative;
+        padding-left: 1.5rem;
+        font-size: 0.875rem;
+        color: #555;
+        cursor: pointer;
+        user-select: none;
+      }
+      .checkbox-container label:before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid #ff6f61;
+        border-radius: 3px;
+        background-color: #fff;
+        transition: all 0.3s ease;
+      }
+      .checkbox-container input[type="checkbox"]:checked + label:before {
+        background-color: #ff6f61;
+        border-color: #ff6f61;
+      }
+      .checkbox-container label:after {
+        content: "\2713";
+        position: absolute;
+        left: 0.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.75rem;
+        color: #fff;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .checkbox-container input[type="checkbox"]:checked + label:after {
+        opacity: 1;
+      }
+      .checkbox-container label:hover:before {
+        border-color: #ff4f41;
+      }
+
+      @media (max-width: 768px) {
         .container {
-            background-color: #fff;
-            padding: 3rem;
-            border-radius: 15px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 100%;
-            max-width: 500px;
-            margin: 2rem;
-            box-sizing: border-box;
+          max-width: 90%;
+          padding: 2rem;
+          margin: 1.5rem;
         }
         h2 {
-            color: #ff6f61;
-            font-size: 1.5rem;
-            margin-bottom: 1.25rem;
+          font-size: 1.25rem;
+          margin-bottom: 1rem;
         }
-        input {
-            width: 100%;
-            padding: 0.625rem;
-            margin: 0.625rem 0;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
+        input,
         button {
-            background-color: #ff6f61;
-            color: white;
-            padding: 0.625rem 1.25rem;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            margin: 0.3125rem 0;
-            width: 100%;
-            font-size: 1rem;
-            transition: background-color 0.3s ease;
+          padding: 0.5rem;
+          font-size: 0.9375rem;
         }
-        button:hover:not(:disabled) {
-            background-color: #ff4f41;
-        }
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        .toggle-form {
-            color: #ff6f61;
-            cursor: pointer;
-            text-decoration: underline;
-            margin: 0.625rem 0;
-            font-size: 0.875rem;
-        }
-        .toggle-form:hover {
-            color: #ff4f41;
-        }
-        .error, .loading-message {
-            font-size: 0.875rem;
-            margin-top: 0.3125rem;
-            display: none;
-        }
-        .error {
-            color: red;
-        }
+        .toggle-form,
+        .error,
         .loading-message {
-            color: #555;
-        }
-
-        /* Custom Checkbox Styles */
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            margin: 0.625rem 0;
-            text-align: left;
-        }
-        .checkbox-container input[type="checkbox"] {
-            display: none; /* Ẩn checkbox mặc định */
+          font-size: 0.8125rem;
         }
         .checkbox-container label {
-            position: relative;
-            padding-left: 1.5rem;
-            font-size: 0.875rem;
-            color: #555;
-            cursor: pointer;
-            user-select: none;
+          font-size: 0.8125rem;
+          padding-left: 1.25rem;
         }
         .checkbox-container label:before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 1rem;
-            height: 1rem;
-            border: 2px solid #ff6f61;
-            border-radius: 3px;
-            background-color: #fff;
-            transition: all 0.3s ease;
-        }
-        .checkbox-container input[type="checkbox"]:checked + label:before {
-            background-color: #ff6f61;
-            border-color: #ff6f61;
+          width: 0.875rem;
+          height: 0.875rem;
         }
         .checkbox-container label:after {
-            content: '\2713'; /* Dấu tích */
-            position: absolute;
-            left: 0.25rem;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 0.75rem;
-            color: #fff;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+          left: 0.2rem;
+          font-size: 0.625rem;
         }
-        .checkbox-container input[type="checkbox"]:checked + label:after {
-            opacity: 1;
-        }
-        .checkbox-container label:hover:before {
-            border-color: #ff4f41;
-        }
+      }
 
-        /* Tablet (max-width: 768px) */
-        @media (max-width: 768px) {
-            .container {
-                max-width: 90%;
-                padding: 2rem;
-                margin: 1.5rem;
-            }
-            h2 {
-                font-size: 1.25rem;
-                margin-bottom: 1rem;
-            }
-            input, button {
-                padding: 0.5rem;
-                font-size: 0.9375rem;
-            }
-            .toggle-form, .error, .loading-message {
-                font-size: 0.8125rem;
-            }
-            .checkbox-container label {
-                font-size: 0.8125rem;
-                padding-left: 1.25rem;
-            }
-            .checkbox-container label:before {
-                width: 0.875rem;
-                height: 0.875rem;
-            }
-            .checkbox-container label:after {
-                left: 0.2rem;
-                font-size: 0.625rem;
-            }
+      @media (max-width: 480px) {
+        body {
+          padding: 0.5rem;
         }
-
-        /* Mobile (max-width: 480px) */
-        @media (max-width: 480px) {
-            body {
-                padding: 0.5rem;
-            }
-            .container {
-                max-width: 100%;
-                padding: 1.5rem;
-                margin: 1rem;
-            }
-            h2 {
-                font-size: 1.125rem;
-                margin-bottom: 0.75rem;
-            }
-            input, button {
-                padding: 0.5rem;
-                font-size: 0.875rem;
-            }
-            button {
-                padding: 0.75rem;
-            }
-            .toggle-form, .error, .loading-message {
-                font-size: 0.75rem;
-            }
-            .checkbox-container label {
-                font-size: 0.75rem;
-                padding-left: 1.25rem;
-            }
-            .checkbox-container label:before {
-                width: 0.75rem;
-                height: 0.75rem;
-            }
-            .checkbox-container label:after {
-                left: 0.15rem;
-                font-size: 0.5rem;
-            }
+        .container {
+          max-width: 100%;
+          padding: 1.5rem;
+          margin: 1rem;
         }
+        h2 {
+          font-size: 1.125rem;
+          margin-bottom: 0.75rem;
+        }
+        input,
+        button {
+          padding: 0.5rem;
+          font-size: 0.875rem;
+        }
+        button {
+          padding: 0.75rem;
+        }
+        .toggle-form,
+        .error,
+        .loading-message {
+          font-size: 0.75rem;
+        }
+        .checkbox-container label {
+          font-size: 0.75rem;
+          padding-left: 1.25rem;
+        }
+        .checkbox-container label:before {
+          width: 0.75rem;
+          height: 0.75rem;
+        }
+        .checkbox-container label:after {
+          left: 0.15rem;
+          font-size: 0.5rem;
+        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container" id="auth-container">
-        <h2 id="form-title">Đăng nhập</h2>
-        <input type="email" id="email" placeholder="Email">
-        <div class="error" id="email-error">Vui lòng nhập email hợp lệ!</div>
-        <input type="password" id="password" placeholder="Mật khẩu">
-        <div class="error" id="password-error">Mật khẩu phải có ít nhất 6 ký tự!</div>
-        <div class="checkbox-container" id="remember-me-container">
-            <input type="checkbox" id="remember-me">
-            <label for="remember-me">Ghi nhớ mật khẩu</label>
-        </div>
-        <button id="auth-button" onclick="handleAuth()">Đăng nhập</button>
-        <div class="loading-message" id="auth-loading">Đang xử lý...</div>
-        <p class="toggle-form" id="toggle-form-text" onclick="toggleForm()">Chưa có tài khoản? Đăng ký ngay!</p>
-        <p class="toggle-form" onclick="showReset()">Quên mật khẩu?</p>
+      <h2 id="form-title">Đăng nhập</h2>
+      <input type="email" id="email" placeholder="Email" />
+      <div class="error" id="email-error">Vui lòng nhập email hợp lệ!</div>
+      <div class="password-input-container">
+        <input type="password" id="password" placeholder="Mật khẩu" />
+        <button
+          type="button"
+          class="toggle-password"
+          onclick="togglePasswordVisibility('password')"
+        >
+          Hiện
+        </button>
+      </div>
+      <div class="error" id="password-error">
+        Mật khẩu phải có ít nhất 6 ký tự!
+      </div>
+      <div class="checkbox-container" id="remember-me-container">
+        <input type="checkbox" id="remember-me" />
+        <label for="remember-me">Ghi nhớ mật khẩu</label>
+      </div>
+      <button id="auth-button" onclick="handleAuth()">Đăng nhập</button>
+      <div class="loading-message" id="auth-loading">Đang xử lý...</div>
+      <p class="toggle-form" id="toggle-form-text" onclick="toggleForm()">
+        Chưa có tài khoản? Đăng ký ngay!
+      </p>
+      <p class="toggle-form" onclick="showReset()">Quên mật khẩu?</p>
     </div>
 
-    <div class="container" id="reset-container" style="display: none;">
-        <h2>Khôi phục mật khẩu</h2>
-        <input type="email" id="reset-email" placeholder="Email">
-        <div class="error" id="reset-email-error">Vui lòng nhập email hợp lệ!</div>
-        <button id="reset-button" onclick="resetPassword()">Gửi email khôi phục</button>
-        <div class="loading-message" id="reset-loading">Đang gửi email...</div>
-        <p class="toggle-form" onclick="showLogin()">Quay lại đăng nhập</p>
+    <div class="container" id="reset-container" style="display: none">
+      <h2>Khôi phục mật khẩu</h2>
+      <input type="email" id="reset-email" placeholder="Email" />
+      <div class="error" id="reset-email-error">
+        Vui lòng nhập email hợp lệ!
+      </div>
+      <button id="reset-button" onclick="resetPassword()">
+        Gửi email khôi phục
+      </button>
+      <div class="loading-message" id="reset-loading">Đang gửi email...</div>
+      <p class="toggle-form" onclick="showLogin()">Quay lại đăng nhập</p>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+      import {
+        getAuth,
+        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
+        sendPasswordResetEmail,
+      } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        getDoc,
+        setDoc,
+      } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCgd64xynT0ppg6-E1RrPx2QEFZONTaIqM",
-            authDomain: "mytamagotchi-fb787.firebaseapp.com",
-            projectId: "mytamagotchi-fb787",
-            storageBucket: "mytamagotchi-fb787.firebasestorage.app",
-            messagingSenderId: "427722619339",
-            appId: "1:427722619339:web:123996eab78d49202bde4e",
-            measurementId: "G-CGZZDQRTEP"
-        };
+      const firebaseConfig = {
+        apiKey: "AIzaSyCgd64xynT0ppg6-E1RrPx2QEFZONTaIqM",
+        authDomain: "mytamagotchi-fb787.firebaseapp.com",
+        projectId: "mytamagotchi-fb787",
+        storageBucket: "mytamagotchi-fb787.firebasestorage.app",
+        messagingSenderId: "427722619339",
+        appId: "1:427722619339:web:123996eab78d49202bde4e",
+        measurementId: "G-CGZZDQRTEP",
+      };
 
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
 
-        const elements = {
-            formTitle: document.getElementById("form-title"),
-            email: document.getElementById("email"),
-            password: document.getElementById("password"),
-            emailError: document.getElementById("email-error"),
-            passwordError: document.getElementById("password-error"),
-            authButton: document.getElementById("auth-button"),
-            authLoading: document.getElementById("auth-loading"),
-            toggleFormText: document.getElementById("toggle-form-text"),
-            authContainer: document.getElementById("auth-container"),
-            resetContainer: document.getElementById("reset-container"),
-            resetEmail: document.getElementById("reset-email"),
-            resetEmailError: document.getElementById("reset-email-error"),
-            resetButton: document.getElementById("reset-button"),
-            resetLoading: document.getElementById("reset-loading"),
-            rememberMe: document.getElementById("remember-me"),
-            rememberMeContainer: document.getElementById("remember-me-container"),
-        };
+      const elements = {
+        formTitle: document.getElementById("form-title"),
+        email: document.getElementById("email"),
+        password: document.getElementById("password"),
+        emailError: document.getElementById("email-error"),
+        passwordError: document.getElementById("password-error"),
+        authButton: document.getElementById("auth-button"),
+        authLoading: document.getElementById("auth-loading"),
+        toggleFormText: document.getElementById("toggle-form-text"),
+        authContainer: document.getElementById("auth-container"),
+        resetContainer: document.getElementById("reset-container"),
+        resetEmail: document.getElementById("reset-email"),
+        resetEmailError: document.getElementById("reset-email-error"),
+        resetButton: document.getElementById("reset-button"),
+        resetLoading: document.getElementById("reset-loading"),
+        rememberMe: document.getElementById("remember-me"),
+        rememberMeContainer: document.getElementById("remember-me-container"),
+      };
 
-        let isLogin = true;
+      let isLogin = true;
 
-        // Function to toggle between login and registration forms
-        window.toggleForm = function () {
-            isLogin = !isLogin;
-            elements.formTitle.textContent = isLogin ? "Đăng nhập" : "Đăng ký";
-            elements.toggleFormText.textContent = isLogin ? "Chưa có tài khoản? Đăng ký ngay!" : "Đã có tài khoản? Đăng nhập ngay!";
-            elements.authButton.textContent = isLogin ? "Đăng nhập" : "Đăng ký";
-            elements.emailError.style.display = "none";
-            elements.passwordError.style.display = "none";
+      // Function to toggle password visibility
+      window.togglePasswordVisibility = function (inputId) {
+        const input = document.getElementById(inputId);
+        const button = input.nextElementSibling;
+        if (input.type === "password") {
+          input.type = "text";
+          button.textContent = "Ẩn";
+        } else {
+          input.type = "password";
+          button.textContent = "Hiện";
+        }
+      };
+
+      // Function to toggle between login and registration forms
+      window.toggleForm = function () {
+        isLogin = !isLogin;
+        elements.formTitle.textContent = isLogin ? "Đăng nhập" : "Đăng ký";
+        elements.toggleFormText.textContent = isLogin
+          ? "Chưa có tài khoản? Đăng ký ngay!"
+          : "Đã có tài khoản? Đăng nhập ngay!";
+        elements.authButton.textContent = isLogin ? "Đăng nhập" : "Đăng ký";
+        elements.emailError.style.display = "none";
+        elements.passwordError.style.display = "none";
+        elements.email.value = "";
+        elements.password.value = "";
+        elements.rememberMeContainer.style.display = isLogin ? "flex" : "none";
+      };
+
+      // Function to show the reset password form
+      window.showReset = function () {
+        elements.authContainer.style.display = "none";
+        elements.resetContainer.style.display = "block";
+        elements.resetEmail.value = "";
+        elements.resetEmailError.style.display = "none";
+      };
+
+      // Function to show the login form
+      window.showLogin = function () {
+        elements.authContainer.style.display = "block";
+        elements.resetContainer.style.display = "none";
+        elements.email.value = "";
+        elements.password.value = "";
+        elements.emailError.style.display = "none";
+        elements.passwordError.style.display = "none";
+        elements.rememberMeContainer.style.display = isLogin ? "flex" : "none";
+      };
+
+      // Function to validate the login/registration form
+      function validateAuthForm(email, password) {
+        let hasError = false;
+        elements.emailError.style.display = "none";
+        elements.passwordError.style.display = "none";
+
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailPattern.test(email)) {
+          elements.emailError.style.display = "block";
+          hasError = true;
+        }
+        if (!password || password.length < 6) {
+          elements.passwordError.style.display = "block";
+          hasError = true;
+        }
+        return !hasError;
+      }
+
+      // Function to validate the reset password form
+      function validateResetForm(email) {
+        elements.resetEmailError.style.display = "none";
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailPattern.test(email)) {
+          elements.resetEmailError.style.display = "block";
+          return false;
+        }
+        return true;
+      }
+
+      // Function to handle user authentication
+      window.handleAuth = async function () {
+        const email = elements.email.value.trim();
+        const password = elements.password.value;
+
+        if (!validateAuthForm(email, password)) return;
+
+        elements.authButton.disabled = true;
+        elements.authLoading.style.display = "block";
+
+        try {
+          let userCredential;
+          if (isLogin) {
+            userCredential = await signInWithEmailAndPassword(
+              auth,
+              email,
+              password,
+            );
+            if (elements.rememberMe.checked) {
+              localStorage.setItem(
+                "tamagotchiCredentials",
+                JSON.stringify({ email, password }),
+              );
+            } else {
+              localStorage.removeItem("tamagotchiCredentials");
+            }
+          } else {
+            userCredential = await createUserWithEmailAndPassword(
+              auth,
+              email,
+              password,
+            );
+            localStorage.removeItem("tamagotchiCredentials");
+            const userRef = doc(db, "Users", userCredential.user.uid);
+            await setDoc(userRef, {
+              gold: 0,
+              items: [],
+              currentPetId: null,
+              email: email,
+            });
+            alert("Đăng ký thành công! Hãy tạo pet của bạn nhé!");
+          }
+          const user = userCredential.user;
+          await loadPet(user.uid);
+        } catch (error) {
+          alert(
+            `${isLogin ? "Đăng nhập" : "Đăng ký"} thất bại: ${error.message}`,
+          );
+        } finally {
+          elements.authButton.disabled = false;
+          elements.authLoading.style.display = "none";
+        }
+      };
+
+      // Function to handle password reset
+      window.resetPassword = async function () {
+        const email = elements.resetEmail.value.trim();
+
+        if (!validateResetForm(email)) return;
+
+        elements.resetButton.disabled = true;
+        elements.resetLoading.style.display = "block";
+
+        try {
+          await sendPasswordResetEmail(auth, email);
+          alert(
+            "Email khôi phục đã được gửi! Vui lòng kiểm tra hộp thư của bạn (có thể nằm trong mục spam).",
+          );
+          showLogin();
+        } catch (error) {
+          alert("Lỗi gửi email khôi phục: " + error.message);
+        } finally {
+          elements.resetButton.disabled = false;
+          elements.resetLoading.style.display = "none";
+        }
+      };
+
+      // Function to load pet data
+      async function loadPet(userId) {
+        try {
+          const userRef = doc(db, "Users", userId);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            if (userData.currentPetId) {
+              const petRef = doc(db, "Pets", userData.currentPetId);
+              const petSnap = await getDoc(petRef);
+              if (petSnap.exists()) {
+                const petData = petSnap.data();
+                alert(
+                  `Chào mừng trở lại! Bé ${petData.petName} đang chờ bạn! (Level: ${petData.level})`,
+                );
+                window.location.href = `game.html?uid=${userId}`;
+              } else {
+                window.location.href = `creation.html?uid=${userId}`;
+              }
+            } else {
+              window.location.href = `creation.html?uid=${userId}`;
+            }
+          } else {
+            await setDoc(userRef, { gold: 0, items: [], currentPetId: null });
+            window.location.href = `creation.html?uid=${userId}`;
+          }
+        } catch (error) {
+          console.error("Lỗi tải pet:", error);
+          alert("Lỗi tải pet: " + error.message);
+        }
+      }
+
+      // Function to attempt auto-login with stored credentials
+      async function tryAutoLogin() {
+        const credentials = localStorage.getItem("tamagotchiCredentials");
+        if (credentials) {
+          const { email, password } = JSON.parse(credentials);
+          elements.email.value = email;
+          elements.password.value = password;
+          elements.rememberMe.checked = true;
+
+          elements.authButton.disabled = true;
+          elements.authLoading.style.display = "block";
+
+          try {
+            const userCredential = await signInWithEmailAndPassword(
+              auth,
+              email,
+              password,
+            );
+            const user = userCredential.user;
+            await loadPet(user.uid);
+          } catch (error) {
+            console.error("Tự động đăng nhập thất bại:", error);
+            localStorage.removeItem("tamagotchiCredentials");
             elements.email.value = "";
             elements.password.value = "";
-            elements.rememberMeContainer.style.display = isLogin ? "flex" : "none";
-        };
-
-        // Function to show the reset password form
-        window.showReset = function () {
-            elements.authContainer.style.display = "none";
-            elements.resetContainer.style.display = "block";
-            elements.resetEmail.value = "";
-            elements.resetEmailError.style.display = "none";
-        };
-
-        // Function to show the login form
-        window.showLogin = function () {
-            elements.authContainer.style.display = "block";
-            elements.resetContainer.style.display = "none";
-            elements.email.value = "";
-            elements.password.value = "";
-            elements.emailError.style.display = "none";
-            elements.passwordError.style.display = "none";
-            elements.rememberMeContainer.style.display = isLogin ? "flex" : "none";
-        };
-
-        // Function to validate the login/registration form
-        function validateAuthForm(email, password) {
-            let hasError = false;
-            elements.emailError.style.display = "none";
-            elements.passwordError.style.display = "none";
-
-            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!email || !emailPattern.test(email)) {
-                elements.emailError.style.display = "block";
-                hasError = true;
-            }
-            if (!password || password.length < 6) {
-                elements.passwordError.style.display = "block";
-                hasError = true;
-            }
-            return !hasError;
+            elements.rememberMe.checked = false;
+          } finally {
+            elements.authButton.disabled = false;
+            elements.authLoading.style.display = "none";
+          }
         }
+      }
 
-        // Function to validate the reset password form
-        function validateResetForm(email) {
-            elements.resetEmailError.style.display = "none";
-            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!email || !emailPattern.test(email)) {
-                elements.resetEmailError.style.display = "block";
-                return false;
-            }
-            return true;
-        }
-
-        // Function to handle user authentication
-        window.handleAuth = async function () {
-            const email = elements.email.value.trim();
-            const password = elements.password.value;
-
-            if (!validateAuthForm(email, password)) return;
-
-            elements.authButton.disabled = true;
-            elements.authLoading.style.display = "block";
-
-            try {
-                let userCredential;
-                if (isLogin) {
-                    userCredential = await signInWithEmailAndPassword(auth, email, password);
-                    if (elements.rememberMe.checked) {
-                        localStorage.setItem("tamagotchiCredentials", JSON.stringify({ email, password }));
-                    } else {
-                        localStorage.removeItem("tamagotchiCredentials");
-                    }
-                    alert("Đăng nhập thành công!");
-                } else {
-                    userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    localStorage.removeItem("tamagotchiCredentials"); // Clear credentials on registration
-                    const userRef = doc(db, "Users", userCredential.user.uid);
-                    await setDoc(userRef, { gold: 0, items: [], currentPetId: null, email: email });
-                    alert("Đăng ký thành công! Hãy tạo pet của bạn nhé!");
-                }
-                const user = userCredential.user;
-                await loadPet(user.uid);
-            } catch (error) {
-                alert(`${isLogin ? "Đăng nhập" : "Đăng ký"} thất bại: ${error.message}`);
-            } finally {
-                elements.authButton.disabled = false;
-                elements.authLoading.style.display = "none";
-            }
-        };
-
-        // Function to handle password reset
-        window.resetPassword = async function () {
-            const email = elements.resetEmail.value.trim();
-
-            if (!validateResetForm(email)) return;
-
-            elements.resetButton.disabled = true;
-            elements.resetLoading.style.display = "block";
-
-            try {
-                await sendPasswordResetEmail(auth, email);
-                alert("Email khôi phục đã được gửi! Vui lòng kiểm tra hộp thư của bạn.");
-                showLogin();
-            } catch (error) {
-                alert("Lỗi gửi email khôi phục: " + error.message);
-            } finally {
-                elements.resetButton.disabled = false;
-                elements.resetLoading.style.display = "none";
-            }
-        };
-
-        // Function to load pet data
-        async function loadPet(userId) {
-            try {
-                const userRef = doc(db, "Users", userId);
-                const userSnap = await getDoc(userRef);
-                if (userSnap.exists()) {
-                    const userData = userSnap.data();
-                    if (userData.currentPetId) {
-                        const petRef = doc(db, "Pets", userData.currentPetId);
-                        const petSnap = await getDoc(petRef);
-                        if (petSnap.exists()) {
-                            const petData = petSnap.data();
-                            alert(`Chào mừng trở lại! Bé ${petData.petName} đang chờ bạn! (Level: ${petData.level})`);
-                            window.location.href = `game.html?uid=${userId}`;
-                        } else {
-                            window.location.href = `creation.html?uid=${userId}`;
-                        }
-                    } else {
-                        window.location.href = `creation.html?uid=${userId}`;
-                    }
-                } else {
-                    await setDoc(userRef, { gold: 0, items: [], currentPetId: null });
-                    window.location.href = `creation.html?uid=${userId}`;
-                }
-            } catch (error) {
-                console.error("Lỗi tải pet:", error);
-                alert("Lỗi tải pet: " + error.message);
-            }
-        }
-
-        // Function to attempt auto-login with stored credentials
-        async function tryAutoLogin() {
-            const credentials = localStorage.getItem("tamagotchiCredentials");
-            if (credentials) {
-                const { email, password } = JSON.parse(credentials);
-                elements.email.value = email;
-                elements.password.value = password;
-                elements.rememberMe.checked = true;
-
-                elements.authButton.disabled = true;
-                elements.authLoading.style.display = "block";
-
-                try {
-                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                    const user = userCredential.user;
-                    await loadPet(user.uid);
-                } catch (error) {
-                    console.error("Tự động đăng nhập thất bại:", error);
-                    localStorage.removeItem("tamagotchiCredentials"); // Clear invalid credentials
-                    elements.email.value = "";
-                    elements.password.value = "";
-                    elements.rememberMe.checked = false;
-                } finally {
-                    elements.authButton.disabled = false;
-                    elements.authLoading.style.display = "none";
-                }
-            }
-        }
-
-        elements.rememberMeContainer.style.display = "flex";
-        tryAutoLogin();
+      elements.rememberMeContainer.style.display = "flex";
+      tryAutoLogin();
     </script>
-    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92dbcc2d5b37c25a',t:'MTc0NDIyMDUxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
-    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92f603881b82bcf6',t:'MTc0NDQ5NTQwNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
-</body>
+    <script>
+      (function () {
+        function c() {
+          var b = a.contentDocument || a.contentWindow.document;
+          if (b) {
+            var d = b.createElement("script");
+            d.innerHTML =
+              "window.__CF$cv$params={r:'92dbcc2d5b37c25a',t:'MTc0NDIyMDUxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+            b.getElementsByTagName("head")[0].appendChild(d);
+          }
+        }
+        if (document.body) {
+          var a = document.createElement("iframe");
+          a.height = 1;
+          a.width = 1;
+          a.style.position = "absolute";
+          a.style.top = 0;
+          a.style.left = 0;
+          a.style.border = "none";
+          a.style.visibility = "hidden";
+          document.body.appendChild(a);
+          if ("loading" !== document.readyState) c();
+          else if (window.addEventListener)
+            document.addEventListener("DOMContentLoaded", c);
+          else {
+            var e = document.onreadystatechange || function () {};
+            document.onreadystatechange = function (b) {
+              e(b);
+              "loading" !== document.readyState &&
+                ((document.onreadystatechange = e), c());
+            };
+          }
+        }
+      })();
+    </script>
+    <script>
+      (function () {
+        function c() {
+          var b = a.contentDocument || a.contentWindow.document;
+          if (b) {
+            var d = b.createElement("script");
+            d.innerHTML =
+              "window.__CF$cv$params={r:'92f603881b82bcf6',t:'MTc0NDQ5NTQwNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+            b.getElementsByTagName("head")[0].appendChild(d);
+          }
+        }
+        if (document.body) {
+          var a = document.createElement("iframe");
+          a.height = 1;
+          a.width = 1;
+          a.style.position = "absolute";
+          a.style.top = 0;
+          a.style.left = 0;
+          a.style.border = "none";
+          a.style.visibility = "hidden";
+          document.body.appendChild(a);
+          if ("loading" !== document.readyState) c();
+          else if (window.addEventListener)
+            document.addEventListener("DOMContentLoaded", c);
+          else {
+            var e = document.onreadystatechange || function () {};
+            document.onreadystatechange = function (b) {
+              e(b);
+              "loading" !== document.readyState &&
+                ((document.onreadystatechange = e), c());
+            };
+          }
+        }
+      })();
+    </script>
+  </body>
 </html>
