@@ -31,7 +31,7 @@ Nếu không chăm sóc đúng cách, thú cưng sẽ dần yếu đi và có th
 
 ## Tech Stack
 
-* Language: HTML/CSS, Javascript
+* Language: HTML, CSS, Javascript
 * Platform: Web
 
 ---
